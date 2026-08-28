@@ -1,0 +1,10 @@
+# Internal business and operating documents are not part of the web runtime.
+/*.pdf
+/docs/
+
+# Repository-only guidance and database source files.
+/AGENTS.md
+/CLAUDE.md
+/README.md
+/supabase/
+/.env.example
