@@ -2,12 +2,38 @@ import { ArrowRight, CalendarDays, Camera, Plus } from "lucide-react";
 import Link from "next/link";
 import { HealthBadge } from "@/components/portal/health-badge";
 import { Metric, Panel, PortalPageHeader } from "@/components/portal/portal-ui";
+import { getPortalAccount } from "@/lib/portal-account";
 import { demoProperty, issues, maintenanceItems } from "@/lib/portal-data";
 
-export default function PortalDashboardPage() {
+function getMountainGreeting(date: Date) {
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", {
+      hour: "2-digit",
+      hour12: false,
+      timeZone: "America/Denver",
+    }).format(date),
+  );
+
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+export default async function PortalDashboardPage() {
+  const account = await getPortalAccount();
+  const now = new Date();
+  const firstName = account.fullName?.split(/\s+/)[0];
+  const greeting = `${getMountainGreeting(now)}${firstName ? `, ${firstName}` : ""}.`;
+  const dateLabel = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Denver",
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(now);
+
   return (
     <main className="mx-auto max-w-[1480px] px-4 py-7 sm:px-7 lg:px-10 lg:py-10">
-      <PortalPageHeader eyebrow="Friday, August 28" title="Good morning, Alex." description="Here is the current operating picture for your property." action={<Link href="/portal/requests" className="inline-flex min-h-11 items-center justify-center gap-2 bg-[#1a1d1c] px-5 text-[0.58rem] font-semibold uppercase tracking-[0.15em] text-white"><Plus aria-hidden="true" className="size-4" />Service request</Link>} />
+      <PortalPageHeader eyebrow={dateLabel} title={greeting} description="Here is the current operating picture for your property." action={<Link href="/portal/requests" className="inline-flex min-h-11 items-center justify-center gap-2 bg-[#1a1d1c] px-5 text-[0.58rem] font-semibold uppercase tracking-[0.15em] text-white"><Plus aria-hidden="true" className="size-4" />Service request</Link>} />
       <section className="mt-7 grid overflow-hidden border border-black/10 bg-[#171b19] text-white lg:grid-cols-[1.15fr_0.85fr]">
         <div className="portal-property-scene relative min-h-80 overflow-hidden p-6 sm:p-8"><div className="relative z-10 flex h-full flex-col justify-between"><p className="text-[0.56rem] font-semibold uppercase tracking-[0.2em] text-white/46">Primary property</p><div><HealthBadge status={demoProperty.health} /><h2 className="mt-5 font-serif text-4xl sm:text-5xl">{demoProperty.name}</h2><p className="mt-2 text-xs uppercase tracking-[0.14em] text-white/45">{demoProperty.location}</p></div></div></div>
         <div className="grid grid-cols-2 gap-px bg-white/10"><div className="bg-[#171b19] p-5 sm:p-7"><CalendarDays aria-hidden="true" className="size-4 text-[#c7a76b]" /><p className="mt-8 text-[0.54rem] uppercase tracking-[0.15em] text-white/35">Last inspection</p><p className="mt-2 text-sm">{demoProperty.lastInspection}</p></div><div className="bg-[#171b19] p-5 sm:p-7"><CalendarDays aria-hidden="true" className="size-4 text-[#c7a76b]" /><p className="mt-8 text-[0.54rem] uppercase tracking-[0.15em] text-white/35">Next visit</p><p className="mt-2 text-sm">{demoProperty.nextVisit}</p></div><Link href={`/portal/properties/${demoProperty.id}`} className="col-span-2 flex items-center justify-between bg-[#202421] p-5 text-[0.6rem] font-semibold uppercase tracking-[0.15em] text-[#d7ba82] sm:p-7">View property record <ArrowRight aria-hidden="true" className="size-4" /></Link></div>
