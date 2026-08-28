@@ -1,0 +1,9 @@
+import { ArrowRight, MapPin } from "lucide-react";
+import Link from "next/link";
+import { HealthBadge } from "@/components/portal/health-badge";
+import { PortalPageHeader } from "@/components/portal/portal-ui";
+import { demoProperty } from "@/lib/portal-data";
+
+export default function PropertiesPage() {
+  return <main className="mx-auto max-w-[1480px] px-4 py-7 sm:px-7 lg:px-10 lg:py-10"><PortalPageHeader eyebrow="Portfolio" title="Properties" description="The stewardship record for every residence in your APRISM relationship." /><Link href={`/portal/properties/${demoProperty.id}`} className="group mt-7 grid overflow-hidden border border-black/10 bg-[#f8f7f2] lg:grid-cols-[0.9fr_1.1fr]"><div className="portal-property-scene relative min-h-80"><div className="absolute left-6 top-6"><HealthBadge status={demoProperty.health} /></div></div><div className="flex flex-col justify-between p-6 sm:p-8"><div><p className="text-[0.56rem] font-semibold uppercase tracking-[0.18em] text-[#8c6f3c]">Private Residence</p><h2 className="mt-4 font-serif text-4xl sm:text-5xl">{demoProperty.name}</h2><p className="mt-3 flex items-center gap-2 text-sm text-black/46"><MapPin aria-hidden="true" className="size-4" />{demoProperty.location}</p></div><div className="mt-10 grid gap-5 border-t border-black/10 pt-6 sm:grid-cols-3"><div><p className="text-[0.52rem] uppercase tracking-[0.14em] text-black/34">Last inspection</p><p className="mt-2 text-sm">{demoProperty.lastInspection}</p></div><div><p className="text-[0.52rem] uppercase tracking-[0.14em] text-black/34">Next visit</p><p className="mt-2 text-sm">{demoProperty.nextVisit}</p></div><div className="flex items-end justify-between text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-[#80632d]">Open record <ArrowRight aria-hidden="true" className="size-4 transition group-hover:translate-x-1" /></div></div></div></Link></main>;
+}
