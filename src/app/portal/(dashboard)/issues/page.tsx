@@ -1,0 +1,5 @@
+import { HealthBadge } from "@/components/portal/health-badge";
+import { Panel, PortalPageHeader } from "@/components/portal/portal-ui";
+import { issues } from "@/lib/portal-data";
+
+export default function IssuesPage() { return <main className="mx-auto max-w-[1480px] px-4 py-7 sm:px-7 lg:px-10 lg:py-10"><PortalPageHeader eyebrow="Condition tracking" title="Issues" description="Observed conditions remain visible from first report through recommendation, coordination, and resolution." /><Panel title="Open issues" eyebrow="2 active" className="mt-7"><div className="divide-y divide-black/10">{issues.map((issue) => <article key={issue.title} className="grid gap-5 px-5 py-6 sm:grid-cols-[1fr_auto] sm:px-6"><div><HealthBadge status={issue.severity} /><h2 className="mt-4 font-serif text-2xl">{issue.title}</h2><p className="mt-2 text-xs text-black/40">Opened {issue.opened} · Coordinating with {issue.owner}</p></div><p className="text-[0.52rem] font-semibold uppercase tracking-[0.14em] text-[#80632d]">In progress</p></article>)}</div></Panel></main>; }

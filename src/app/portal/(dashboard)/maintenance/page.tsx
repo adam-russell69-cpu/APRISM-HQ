@@ -1,0 +1,5 @@
+import { CalendarDays } from "lucide-react";
+import { Panel, PortalPageHeader } from "@/components/portal/portal-ui";
+import { maintenanceItems } from "@/lib/portal-data";
+
+export default function MaintenancePage() { return <main className="mx-auto max-w-[1480px] px-4 py-7 sm:px-7 lg:px-10 lg:py-10"><PortalPageHeader eyebrow="Planned care" title="Maintenance" description="Upcoming work, recurring service intervals, and coordinated seasonal preparation." /><Panel title="Next 45 days" eyebrow="Maintenance calendar" className="mt-7"><div className="grid gap-px bg-black/10 md:grid-cols-2">{maintenanceItems.map((item) => <article key={item.title} className="flex min-h-40 items-start gap-5 bg-[#f8f7f2] p-5 sm:p-6"><span className="flex size-11 shrink-0 items-center justify-center border border-black/10 bg-white"><CalendarDays aria-hidden="true" className="size-4 text-[#80632d]" /></span><div><p className="text-[0.5rem] font-semibold uppercase tracking-[0.14em] text-[#80632d]">{item.date} · {item.status}</p><h2 className="mt-3 font-serif text-2xl">{item.title}</h2><p className="mt-2 text-xs text-black/42">{item.category}</p></div></article>)}</div></Panel></main>; }

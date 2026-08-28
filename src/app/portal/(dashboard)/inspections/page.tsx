@@ -1,0 +1,6 @@
+import { FileText } from "lucide-react";
+import { HealthBadge } from "@/components/portal/health-badge";
+import { Panel, PortalPageHeader } from "@/components/portal/portal-ui";
+import { inspections } from "@/lib/portal-data";
+
+export default function InspectionsPage() { return <main className="mx-auto max-w-[1480px] px-4 py-7 sm:px-7 lg:px-10 lg:py-10"><PortalPageHeader eyebrow="Documented visits" title="Inspections" description="Scheduled property observations, findings, photographs, and recommended follow-up." /><Panel title="Inspection history" eyebrow="Silver Pine Residence" className="mt-7"><div className="divide-y divide-black/10">{inspections.map((inspection) => <article key={`${inspection.date}-${inspection.type}`} className="grid gap-4 px-5 py-5 sm:grid-cols-[8rem_1fr_auto_auto] sm:items-center sm:px-6"><p className="text-xs font-medium text-[#80632d]">{inspection.date}</p><div><h2 className="text-sm font-medium">{inspection.type}</h2><p className="mt-1 text-xs text-black/40">{inspection.items}</p></div><HealthBadge status={inspection.result} /><button type="button" className="flex items-center gap-2 text-[0.52rem] font-semibold uppercase tracking-[0.13em] text-black/45"><FileText aria-hidden="true" className="size-4" />View report</button></article>)}</div></Panel></main>; }
