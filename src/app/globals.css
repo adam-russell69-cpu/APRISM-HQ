@@ -36,6 +36,22 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.editorial-image {
+  filter: saturate(0.82) contrast(1.04);
+}
+
+.editorial-grid {
+  background-image:
+    linear-gradient(rgb(24 27 26 / 7%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(24 27 26 / 7%) 1px, transparent 1px);
+  background-size: 42px 42px;
+}
+
 ::selection {
   background: rgb(199 167 107 / 32%);
   color: #fff;

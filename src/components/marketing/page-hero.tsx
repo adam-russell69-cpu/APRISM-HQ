@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 type PageHeroProps = {
   eyebrow: string;
   title: string;
@@ -7,8 +9,16 @@ type PageHeroProps = {
 
 export function PageHero({ eyebrow, title, intro, index = "APRISM" }: PageHeroProps) {
   return (
-    <section className="relative overflow-hidden border-b border-white/10 bg-[#0c0f0f] pb-20 pt-40 sm:pb-28 sm:pt-48">
-      <div className="subpage-atmosphere absolute inset-0" aria-hidden="true" />
+    <section className="relative overflow-hidden border-b border-white/10 bg-[#0c0f0f] pb-20 pt-44 sm:pb-28 sm:pt-52">
+      <Image
+        src="/images/aprism-park-city-estate-hero.png"
+        alt="A mountain estate overlooking the Wasatch Back at blue hour"
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-[66%_55%]"
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,9,9,0.96)_0%,rgba(7,9,9,0.78)_45%,rgba(7,9,9,0.25)_100%),linear-gradient(0deg,rgba(7,9,9,0.7),transparent_55%)]" aria-hidden="true" />
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
         <div className="grid gap-12 lg:grid-cols-[0.25fr_1fr]">
           <p className="pt-2 text-[0.62rem] font-semibold uppercase tracking-[0.28em] text-[#c7a76b]">{index}</p>

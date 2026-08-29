@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandSignature } from "./brand-signature";
 
 const footerLinks = [
   ["Property Services", "/property-services"],
@@ -14,7 +15,7 @@ export function SiteFooter() {
     <footer className="border-t border-white/10 bg-[#080909]">
       <div className="mx-auto grid max-w-7xl gap-14 px-5 py-16 sm:px-8 md:grid-cols-[1.2fr_0.8fr_0.8fr] lg:px-12 lg:py-20">
         <div>
-          <Link href="/" className="text-xl font-semibold tracking-[0.34em]">APRISM</Link>
+          <BrandSignature />
           <p className="mt-6 max-w-sm font-serif text-3xl leading-tight text-white/80">Luxury Asset Stewardship.<br />Managing What Matters.</p>
         </div>
         <div>
