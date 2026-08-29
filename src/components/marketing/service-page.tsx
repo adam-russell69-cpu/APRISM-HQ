@@ -1,12 +1,54 @@
 import { ArrowUpRight, Check } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import type { Service } from "@/lib/marketing";
 import { PageHero } from "./page-hero";
 
-export function ServicePage({ service }: { service: Service }) {
+type EditorialMedia = {
+  src: string;
+  alt: string;
+  eyebrow: string;
+  caption?: string;
+};
+
+type ServicePageProps = {
+  service: Service;
+  editorialMedia?: EditorialMedia;
+};
+
+export function ServicePage({ service, editorialMedia }: ServicePageProps) {
   return (
     <main>
       <PageHero eyebrow={service.eyebrow} title={service.title} intro={service.intro} />
+      {editorialMedia ? (
+        <section className="bg-[#0c0f0f] px-5 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-16">
+          <figure className="relative mx-auto max-w-[90rem] overflow-hidden border-y border-white/10">
+            <div className="relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-[16/7]">
+              <Image
+                src={editorialMedia.src}
+                alt={editorialMedia.alt}
+                fill
+                sizes="(max-width: 639px) calc(100vw - 2.5rem), (max-width: 1023px) calc(100vw - 4rem), min(90rem, calc(100vw - 6rem))"
+                className="object-cover object-[68%_50%] sm:object-center"
+              />
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,9,9,0.72)_0%,rgba(7,9,9,0.08)_58%),linear-gradient(0deg,rgba(7,9,9,0.72)_0%,transparent_48%)]"
+              />
+            </div>
+            <figcaption className="absolute inset-x-0 bottom-0 p-5 sm:p-8 lg:p-10">
+              <p className="text-[0.6rem] font-semibold uppercase tracking-[0.24em] text-[#c7a76b]">
+                {editorialMedia.eyebrow}
+              </p>
+              {editorialMedia.caption ? (
+                <p className="mt-3 max-w-xl text-sm leading-6 text-white/64 sm:text-base sm:leading-7">
+                  {editorialMedia.caption}
+                </p>
+              ) : null}
+            </figcaption>
+          </figure>
+        </section>
+      ) : null}
       <section className="bg-[#efede6] py-20 text-[#171a19] sm:py-28">
         <div className="mx-auto grid max-w-7xl gap-14 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:px-12">
           <div>
