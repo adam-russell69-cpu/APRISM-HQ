@@ -9,6 +9,7 @@ export type PortalAccount = {
   preferredContactMethod: string | null;
   propertyName: string | null;
   role: string | null;
+  staffRole: string | null;
 };
 
 const emptyAccount: PortalAccount = {
@@ -18,6 +19,7 @@ const emptyAccount: PortalAccount = {
   preferredContactMethod: null,
   propertyName: null,
   role: null,
+  staffRole: null,
 };
 
 export async function getPortalAccount(): Promise<PortalAccount> {
@@ -31,7 +33,7 @@ export async function getPortalAccount(): Promise<PortalAccount> {
 
   if (userError || !user) return emptyAccount;
 
-  const [profileResult, membershipResult] = await Promise.all([
+  const [profileResult, membershipResult, staffResult] = await Promise.all([
     supabase
       .from("profiles")
       .select("full_name, phone, preferred_contact_method")
@@ -42,6 +44,12 @@ export async function getPortalAccount(): Promise<PortalAccount> {
       .select("role, properties(name)")
       .eq("user_id", user.id)
       .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("staff_users")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("active", true)
       .maybeSingle(),
   ]);
 
@@ -54,5 +62,6 @@ export async function getPortalAccount(): Promise<PortalAccount> {
     preferredContactMethod: profileResult.data?.preferred_contact_method ?? null,
     propertyName: linkedProperty?.name ?? null,
     role: membershipResult.data?.role ?? null,
+    staffRole: staffResult.data?.role ?? null,
   };
 }

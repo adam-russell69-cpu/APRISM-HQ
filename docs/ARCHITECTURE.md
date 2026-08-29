@@ -7,8 +7,8 @@ APRISM uses a single Next.js App Router application for the public marketing sit
 ```text
 Browser
   ├─ Marketing routes ──> Server Components + Server Action inquiry boundary
-  └─ Portal routes ─────> Next.js proxy session refresh ──> Supabase Auth
-                                                  └───────> Postgres + RLS
+  ├─ Portal routes ─────> Next.js proxy session refresh ──> Supabase Auth
+  └─ Admin routes ──────> Staff-role verification ────────> Postgres + RLS
 ```
 
 ## Application boundaries
@@ -16,10 +16,11 @@ Browser
 - `src/app/(marketing)`: public pages. The route group shares the public header, footer, structured data, and brand surface without affecting URLs.
 - `src/app/portal/login`: sign-in surface. When credentials are absent, it offers an explicit MVP preview link.
 - `src/app/portal/(dashboard)`: portal routes wrapped by the private portal shell.
+- `src/app/admin`: APRISM owner/staff console for inquiries and operating records.
 - `src/components/marketing`: public navigation, footer, service template, and inquiry form.
 - `src/components/portal`: portal navigation, health labels, panels, and forms.
 - `src/lib/supabase`: browser client, server client, configuration check, and proxy session refresh.
-- `src/proxy.ts`: Next.js 16 request boundary for `/portal/:path*`.
+- `src/proxy.ts`: Next.js 16 request boundary for `/portal/:path*` and `/admin/:path*`.
 - `supabase/migrations`: reproducible database schema and policies.
 
 ## Rendering model
@@ -35,6 +36,7 @@ Authentication and authorization are separate layers:
 3. Server Actions validate the session again before live writes.
 4. PostgreSQL RLS is the authoritative data boundary.
 5. A user can see property data only when `property_members.user_id = auth.uid()` for that property.
+6. Company administration is a separate authorization layer: `staff_users` grants owner/admin/steward access and is never writable through the public client API.
 
 The proxy is not treated as the only security boundary. The database enforces access even if a route or client query is changed.
 

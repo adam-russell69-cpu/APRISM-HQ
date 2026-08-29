@@ -17,6 +17,7 @@
 | `vendors` | Approved vendor directory |
 | `property_vendors` | Property-specific vendor relationships and preferred scope |
 | `inquiries` | Write-only public property-assessment requests for APRISM review |
+| `staff_users` | Company-level owner/admin/steward authorization, keyed to `auth.users.id` |
 
 All application primary keys are UUIDs. All mutable records include `created_at` and `updated_at` timestamps. Foreign keys and high-value property/status/date lookups are indexed.
 
@@ -31,11 +32,14 @@ The schema constrains health fields to `Healthy`, `Monitor`, `Action Recommended
 - `authenticated` receives read privileges, but policies limit results to explicit property membership.
 - Client users can insert only their own profile and their own service requests for properties where they are members.
 - Clients cannot create, update, or delete `property_members`.
+- Clients cannot create, update, or delete `staff_users`; authenticated users can read only their own staff assignment.
+- Active APRISM staff can operate property records, while only owner/admin roles can manage property membership.
+- APRISM staff can read and update inquiry workflow status; anonymous visitors remain unable to read inquiries.
 - The profile update policy includes both `USING` and `WITH CHECK`.
 - No policy uses `user_metadata`, `raw_user_meta_data`, or a client-controlled role claim.
 - No application code or environment template contains a service-role secret.
 
-`property_members` is the source of truth even for owners and APRISM stewards. Future staff workflows should provision membership through a reviewed administrative path, not through a broad client policy.
+`property_members` remains the source of truth for client-to-property access. `staff_users` is the separate source of truth for company operations access. Neither authorization table is writable by ordinary client accounts, and no role decision uses user-editable metadata.
 
 ## Applying the schema
 

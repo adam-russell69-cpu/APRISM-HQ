@@ -42,7 +42,8 @@ export async function updateSession(request: NextRequest) {
 
   if (isSignedIn && isLoginRoute) {
     const portalUrl = request.nextUrl.clone();
-    portalUrl.pathname = "/portal";
+    const nextPath = request.nextUrl.searchParams.get("next");
+    portalUrl.pathname = nextPath && /^\/(admin|portal)(\/|$)/.test(nextPath) ? nextPath : "/portal";
     portalUrl.search = "";
     return copyAuthState(response, NextResponse.redirect(portalUrl));
   }

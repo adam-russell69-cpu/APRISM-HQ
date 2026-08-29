@@ -16,6 +16,8 @@
 - [ ] Run `supabase test db` and confirm the RLS contract tests pass.
 - [ ] Test allow/deny behavior with two real Auth users assigned to different properties.
 - [ ] Confirm no user can create, modify, or delete `property_members` through the client API.
+- [ ] Confirm ordinary clients cannot read or modify `staff_users` or open `/admin`.
+- [ ] Confirm only reviewed owner/admin accounts can change property membership.
 - [ ] Configure document storage with property-member policies before uploading client files.
 - [ ] Seed production only with reviewed property/client records.
 

@@ -32,6 +32,12 @@
 | `/portal/requests` | Service-request creation and history |
 | `/portal/profile` | Contact preferences and authorized memberships |
 
+## APRISM administration
+
+| Route | Purpose |
+| --- | --- |
+| `/admin` | Protected owner/staff console for inquiries, properties, requests, and issues |
+
 ## Framework routes
 
 | Route | Purpose |
@@ -41,4 +47,4 @@
 | `/manifest.webmanifest` | Application identity and theme |
 | `/opengraph-image` | Branded social preview image |
 
-`src/proxy.ts` requires a valid session for every portal route except `/portal/login`. Pilot property records are finalized during APRISM onboarding.
+`src/proxy.ts` requires a valid session for every portal and admin route except `/portal/login`. The `/admin` layout then requires an active `staff_users` assignment; ordinary clients are returned to the client portal.
