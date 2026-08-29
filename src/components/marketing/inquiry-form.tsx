@@ -1,8 +1,9 @@
 "use client";
 
 import { ArrowRight, CheckCircle2 } from "lucide-react";
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { submitInquiry, type InquiryState } from "@/app/(marketing)/contact/actions";
+import { trackMarketingEvent } from "@/components/analytics/aprism-analytics";
 
 const initialState: InquiryState = { status: "idle", message: "" };
 const serviceOptions = ["Property Services", "Estate Management", "Home Watch", "New Home Stewardship", "APRISM Moto"];
@@ -12,9 +13,29 @@ const labelClass = "text-[0.62rem] font-semibold uppercase tracking-[0.15em] tex
 
 export function InquiryForm() {
   const [state, formAction, pending] = useActionState(submitInquiry, initialState);
+  const assessmentStarted = useRef(false);
+  const conversionTracked = useRef(false);
+  const conversionLeadType = state.analytics?.lead_type;
+  const conversionServiceInterest = state.analytics?.service_interest;
+
+  function trackAssessmentStart() {
+    if (assessmentStarted.current) return;
+    assessmentStarted.current = true;
+    trackMarketingEvent("assessment_start", { lead_type: "property_assessment" });
+  }
+
+  useEffect(() => {
+    if (state.status !== "success" || !conversionLeadType || !conversionServiceInterest || conversionTracked.current) return;
+
+    conversionTracked.current = true;
+    trackMarketingEvent("generate_lead", {
+      lead_type: conversionLeadType,
+      service_interest: conversionServiceInterest,
+    });
+  }, [conversionLeadType, conversionServiceInterest, state.status]);
 
   return (
-    <form action={formAction} className="border border-black/12 bg-[#f7f5ee] p-5 sm:p-8" noValidate>
+    <form action={formAction} className="border border-black/12 bg-[#f7f5ee] p-5 sm:p-8" noValidate onFocusCapture={trackAssessmentStart}>
       <div className="absolute -left-[10000px] top-auto size-px overflow-hidden" aria-hidden="true">
         <label>Company website<input type="text" name="companyWebsite" tabIndex={-1} autoComplete="off" /></label>
       </div>

@@ -5,6 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 export type InquiryState = {
   status: "idle" | "error" | "success";
   message: string;
+  analytics?: {
+    lead_type: "property_assessment";
+    service_interest: string;
+  };
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -91,5 +95,9 @@ export async function submitInquiry(
   return {
     status: "success",
     message: "Thank you. Your request has been received. APRISM will respond within one business day.",
+    analytics: {
+      lead_type: "property_assessment",
+      service_interest: inquiry.services.join("|"),
+    },
   };
 }
