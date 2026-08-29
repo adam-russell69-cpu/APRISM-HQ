@@ -14,12 +14,14 @@
 | `/about` | APRISM philosophy and operating principles |
 | `/service-area` | Park City, Deer Valley, Promontory, and Summit County coverage |
 | `/contact` | Premium property-assessment inquiry form |
+| `/privacy` | Website and portal privacy notice |
+| `/terms` | Website, membership, and portal terms |
 
 ## Client portal
 
 | Route | Purpose |
 | --- | --- |
-| `/portal/login` | Supabase Auth sign-in and disconnected-project preview entry |
+| `/portal/login` | Supabase Auth sign-in |
 | `/portal` | Property health dashboard and current operating picture |
 | `/portal/properties` | Client property portfolio |
 | `/portal/properties/[id]` | Overview, systems, equipment, history, documents, vendors, photos, calendar |
@@ -39,4 +41,4 @@
 | `/manifest.webmanifest` | Application identity and theme |
 | `/opengraph-image` | Branded social preview image |
 
-Portal sample routes are visible without credentials only in explicit MVP preview mode. Once Supabase credentials are present, `src/proxy.ts` requires a valid session for every portal route except `/portal/login`.
+`src/proxy.ts` requires a valid session for every portal route except `/portal/login`. Pilot property records are finalized during APRISM onboarding.

@@ -22,7 +22,7 @@ function PortalNavigation({ onNavigate, signOutAction }: { onNavigate?: () => vo
       <nav aria-label="Portal navigation" className="flex-1 px-3">
         {navItems.map((item) => { const Icon = item.icon; return <Link key={item.href} href={item.href} onClick={onNavigate} className="flex items-center gap-3 border-l border-transparent px-4 py-3 text-xs font-medium text-white/48 transition hover:border-[#c7a76b] hover:bg-white/[0.04] hover:text-white"><Icon aria-hidden="true" className="size-4" />{item.label}</Link>; })}
       </nav>
-      <div className="mx-4 mb-4 border border-white/10 p-4"><p className="text-[0.54rem] font-semibold uppercase tracking-[0.16em] text-[#d6b879]">MVP preview</p><p className="mt-2 text-[0.66rem] leading-5 text-white/35">Sample property data. Live records appear after APRISM Supabase is connected.</p></div>
+      <div className="mx-4 mb-4 border border-white/10 p-4"><p className="text-[0.54rem] font-semibold uppercase tracking-[0.16em] text-[#d6b879]">Pilot portal</p><p className="mt-2 text-[0.66rem] leading-5 text-white/35">Your secure account is active. Property records are finalized as APRISM onboarding is completed.</p></div>
       <form action={signOutAction} className="mx-4 mb-6"><button type="submit" className="flex min-h-11 w-full items-center justify-center border border-white/12 text-[0.58rem] font-semibold uppercase tracking-[0.15em] text-white/45 transition hover:text-white">Sign out</button></form>
     </>
   );

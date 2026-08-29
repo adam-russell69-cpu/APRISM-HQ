@@ -16,6 +16,7 @@
 | `documents` | Metadata for property files stored outside the table |
 | `vendors` | Approved vendor directory |
 | `property_vendors` | Property-specific vendor relationships and preferred scope |
+| `inquiries` | Write-only public property-assessment requests for APRISM review |
 
 All application primary keys are UUIDs. All mutable records include `created_at` and `updated_at` timestamps. Foreign keys and high-value property/status/date lookups are indexed.
 
@@ -26,7 +27,7 @@ The schema constrains health fields to `Healthy`, `Monitor`, `Action Recommended
 ## Authorization contract
 
 - Every application table in `public` has RLS enabled.
-- `anon` receives no table privileges or policies.
+- `anon` receives no property or portal privileges. It may insert only validated columns into `inquiries` and cannot read, update, or delete those records.
 - `authenticated` receives read privileges, but policies limit results to explicit property membership.
 - Client users can insert only their own profile and their own service requests for properties where they are members.
 - Clients cannot create, update, or delete `property_members`.
@@ -52,7 +53,7 @@ supabase db reset
 supabase test db
 ```
 
-The pgTAP contract in `supabase/tests/database/001_rls_contract.test.sql` checks that all 12 tables have RLS, anonymous policies are absent, update policies contain `USING` and `WITH CHECK`, membership mutation is denied, and user metadata is not referenced.
+The pgTAP contract in `supabase/tests/database/001_rls_contract.test.sql` checks the property-data RLS contract. The inquiry migration adds a deliberately narrow anonymous insert policy with no anonymous read access.
 
 Before production, add integration tests using two real Auth users and two properties to prove both positive access and cross-property denial through the Supabase Data API.
 

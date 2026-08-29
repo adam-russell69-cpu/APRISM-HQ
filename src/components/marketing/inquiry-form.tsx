@@ -15,6 +15,9 @@ export function InquiryForm() {
 
   return (
     <form action={formAction} className="border border-black/12 bg-[#f7f5ee] p-5 sm:p-8" noValidate>
+      <div className="absolute -left-[10000px] top-auto size-px overflow-hidden" aria-hidden="true">
+        <label>Company website<input type="text" name="companyWebsite" tabIndex={-1} autoComplete="off" /></label>
+      </div>
       <div className="grid gap-6 sm:grid-cols-2">
         <label className={labelClass}>Name<input className={inputClass} type="text" name="name" autoComplete="name" required /></label>
         <label className={labelClass}>Email<input className={inputClass} type="email" name="email" autoComplete="email" required /></label>
@@ -43,7 +46,7 @@ export function InquiryForm() {
         <label className={labelClass}>Best time to reach you<input className={inputClass} type="text" name="preferredTime" placeholder="Optional" /></label>
       </div>
 
-      <label className={`${labelClass} mt-7 block`}>Tell us about the property and your priorities<textarea className={`${inputClass} min-h-36 resize-y py-4`} name="message" required /></label>
+      <label className={`${labelClass} mt-7 block`}>Tell us about the property and your priorities<textarea className={`${inputClass} min-h-36 resize-y py-4`} name="message" minLength={10} maxLength={4000} required /></label>
 
       <div className="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <p className="max-w-lg text-xs leading-5 text-black/42">Your information is used only to understand the property and respond to this request.</p>
