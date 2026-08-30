@@ -57,6 +57,10 @@ export async function submitInquiry(
     message: value(formData, "message"),
   };
 
+  if (inquiry.message.length < 10) {
+    return { status: "error", message: "Please tell us a little more about the property and your priorities." };
+  }
+
   const missing = Object.entries(inquiry).some(([field, fieldValue]) => {
     if (field === "preferred_time") return false;
     return Array.isArray(fieldValue) ? fieldValue.length === 0 : !fieldValue;
@@ -77,7 +81,7 @@ export async function submitInquiry(
     || !allowedContactMethods.has(inquiry.preferred_contact_method)
     || inquiry.services.some((service) => !allowedServices.has(service));
 
-  if (invalidSelection || inquiry.name.length > 120 || inquiry.phone.length > 40 || inquiry.property_location.length > 240 || inquiry.message.length < 10 || inquiry.message.length > 4000 || (inquiry.preferred_time?.length ?? 0) > 120) {
+  if (invalidSelection || inquiry.name.length > 120 || inquiry.phone.length > 40 || inquiry.property_location.length > 240 || inquiry.message.length > 4000 || (inquiry.preferred_time?.length ?? 0) > 120) {
     return { status: "error", message: "Please review the form details and try again." };
   }
 

@@ -35,7 +35,7 @@ export function InquiryForm() {
   }, [conversionLeadType, conversionServiceInterest, state.status]);
 
   return (
-    <form action={formAction} className="border border-black/12 bg-[#f7f5ee] p-5 sm:p-8" noValidate onFocusCapture={trackAssessmentStart}>
+    <form action={formAction} className="border border-black/12 bg-[#f7f5ee] p-5 sm:p-8" onFocusCapture={trackAssessmentStart}>
       <div className="absolute -left-[10000px] top-auto size-px overflow-hidden" aria-hidden="true">
         <label>Company website<input type="text" name="companyWebsite" tabIndex={-1} autoComplete="off" /></label>
       </div>
