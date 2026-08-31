@@ -153,14 +153,14 @@ export const healthStatuses = [
 export const memberships = [
   {
     name: "Essential Care",
-    price: "$149",
+    price: { amount: "149" },
     cadence: "/month",
     description: "A professional maintenance relationship for a primary residence.",
     features: ["Annual property review", "Maintenance planning", "Preferred scheduling", "Digital property record"],
   },
   {
     name: "Summit Home",
-    price: "$399",
+    price: { amount: "399" },
     cadence: "/month",
     description: "Proactive oversight for mountain homes used throughout the year.",
     features: ["Scheduled home watch", "Seasonal readiness review", "Photo condition reports", "Vendor coordination"],
@@ -168,14 +168,14 @@ export const memberships = [
   },
   {
     name: "Estate Stewardship",
-    price: "$895",
+    price: { amount: "895" },
     cadence: "/month",
     description: "Comprehensive estate coordination and an accountable stewardship lead.",
     features: ["Frequent documented inspections", "Project and vendor oversight", "Arrival and departure care", "Priority coordination"],
   },
   {
     name: "Private Client",
-    price: "From $1,750",
+    price: { amount: "1,750", qualifier: "From" },
     cadence: "/month",
     description: "A tailored program for complex estates, multiple properties, and specialty assets.",
     features: ["Custom stewardship schedule", "Portfolio-level property records", "Dedicated coordination", "APRISM Moto integration"],

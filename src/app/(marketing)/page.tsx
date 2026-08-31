@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { UsdPrice } from "@/components/marketing/usd-price";
 import { healthStatuses, memberships } from "@/lib/marketing";
 
 const stewardshipServices = [
@@ -100,7 +101,7 @@ export default function Home() {
               <article key={membership.name} className={`flex min-h-[29rem] flex-col p-7 ${membership.featured ? "bg-[#141917] text-white" : "bg-[#f8f5ee]"}`}>
                 <p className={`text-[0.55rem] font-semibold uppercase tracking-[0.2em] ${membership.featured ? "text-[#d4b779]" : "text-[#8b6b38]"}`}>{membership.featured ? "Most requested" : "APRISM Membership"}</p>
                 <h3 className="mt-7 font-serif text-3xl">{membership.name}</h3>
-                <div className="mt-5 flex items-end gap-1"><span className="font-serif text-3xl">{membership.price}</span><span className={`pb-1 text-[0.65rem] ${membership.featured ? "text-white/40" : "text-black/40"}`}>{membership.cadence}</span></div>
+                <div className="mt-5 flex items-end gap-1"><span className="font-serif text-3xl"><UsdPrice {...membership.price} /></span><span className={`pb-1 text-[0.65rem] ${membership.featured ? "text-white/40" : "text-black/40"}`}>{membership.cadence}</span></div>
                 <p className={`mt-5 text-xs leading-6 ${membership.featured ? "text-white/50" : "text-black/52"}`}>{membership.description}</p>
                 <ul className={`mt-6 grid gap-3 border-t pt-5 text-xs ${membership.featured ? "border-white/12 text-white/65" : "border-black/12 text-black/62"}`}>
                   {membership.features.slice(0, 3).map((feature) => <li key={feature} className="flex gap-2.5"><Check aria-hidden="true" className="mt-0.5 size-3.5 shrink-0 text-[#a7864e]" />{feature}</li>)}
