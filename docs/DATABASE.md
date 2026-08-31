@@ -18,6 +18,7 @@
 | `property_vendors` | Property-specific vendor relationships and preferred scope |
 | `inquiries` | Write-only public property-assessment requests for APRISM review |
 | `staff_users` | Company-level owner/admin/steward authorization, keyed to `auth.users.id` |
+| `property_assessments` | Write-only public intake plus staff-only field notes, findings, report drafts, and stewardship recommendations |
 
 All application primary keys are UUIDs. All mutable records include `created_at` and `updated_at` timestamps. Foreign keys and high-value property/status/date lookups are indexed.
 
@@ -35,6 +36,9 @@ The schema constrains health fields to `Healthy`, `Monitor`, `Action Recommended
 - Clients cannot create, update, or delete `staff_users`; authenticated users can read only their own staff assignment.
 - Active APRISM staff can operate property records, while only owner/admin roles can manage property membership.
 - APRISM staff can read and update inquiry workflow status; anonymous visitors remain unable to read inquiries.
+- Anonymous and authenticated visitors may insert only a constrained `intake_received` assessment row with every internal field empty. They cannot read assessment records.
+- Active APRISM staff can select, insert, update, and delete assessment records. The UPDATE policy includes both `USING` and `WITH CHECK`.
+- Client property membership does not expose assessment field notes or draft reports. A future published view must explicitly select client-safe fields.
 - The profile update policy includes both `USING` and `WITH CHECK`.
 - No policy uses `user_metadata`, `raw_user_meta_data`, or a client-controlled role claim.
 - No application code or environment template contains a service-role secret.

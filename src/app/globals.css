@@ -180,3 +180,25 @@ button {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+@media print {
+  @page { margin: 0.55in; }
+  html, body { background: #fff !important; color: #111 !important; }
+  body { min-width: 0; font-size: 10pt; }
+  .print-hidden { display: none !important; }
+  .assessment-print-sheet {
+    break-after: page;
+    border: 0 !important;
+    background: #fff !important;
+    padding: 0 !important;
+    color: #111 !important;
+  }
+  .assessment-print-sheet input,
+  .assessment-print-sheet select,
+  .assessment-print-sheet textarea {
+    border-color: #aaa !important;
+    background: #fff !important;
+    color: #111 !important;
+  }
+  .assessment-print-sheet textarea { min-height: 0.7in; }
+}

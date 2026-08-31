@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  outputFileTracingIncludes: {
+    "/admin/assessments/documents/[document]": ["./private-documents/assessments/*.pdf"],
+  },
   async headers() {
     return [
       {

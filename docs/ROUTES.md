@@ -14,6 +14,7 @@
 | `/about` | APRISM philosophy and operating principles |
 | `/service-area` | Park City, Deer Valley, Promontory, and Summit County coverage |
 | `/contact` | Premium property-assessment inquiry form |
+| `/property-assessment/intake` | Scheduled-client electronic property assessment intake and public fillable PDF |
 | `/privacy` | Website and portal privacy notice |
 | `/terms` | Website, membership, and portal terms |
 
@@ -37,6 +38,8 @@
 | Route | Purpose |
 | --- | --- |
 | `/admin` | Protected owner/staff console for inquiries, properties, requests, and issues |
+| `/admin/assessments` | Protected field checklist, report builder, saved assessment records, and staff-only PDF references |
+| `/admin/assessments/documents/[document]` | Authenticated staff download boundary for internal assessment PDFs |
 
 ## Framework routes
 

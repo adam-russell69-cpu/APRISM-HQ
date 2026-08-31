@@ -7,8 +7,9 @@ APRISM uses a single Next.js App Router application for the public marketing sit
 ```text
 Browser
   ├─ Marketing routes ──> Server Components + Server Action inquiry boundary
+  ├─ Assessment intake ─> Validated write-only Supabase assessment record
   ├─ Portal routes ─────> Next.js proxy session refresh ──> Supabase Auth
-  └─ Admin routes ──────> Staff-role verification ────────> Postgres + RLS
+  └─ Admin routes ──────> Staff-role verification ────────> Assessments + Postgres RLS
 ```
 
 ## Application boundaries
@@ -17,6 +18,7 @@ Browser
 - `src/app/portal/login`: sign-in surface. When credentials are absent, it offers an explicit MVP preview link.
 - `src/app/portal/(dashboard)`: portal routes wrapped by the private portal shell.
 - `src/app/admin`: APRISM owner/staff console for inquiries and operating records.
+- `src/app/admin/assessments`: staff-only checklist, report workflow, saved records, and protected reference-PDF delivery.
 - `src/components/marketing`: public navigation, footer, service template, and inquiry form.
 - `src/components/portal`: portal navigation, health labels, panels, and forms.
 - `src/lib/supabase`: browser client, server client, configuration check, and proxy session refresh.
@@ -52,3 +54,4 @@ When Supabase public credentials are absent, the public site renders normally, p
 - No host header is trusted to construct metadata or auth origins.
 - Security headers are returned from `next.config.ts`.
 - No service-role credential is present in the repository or browser bundle.
+- Only the client Intake PDF is static/public. Internal checklist and report PDFs remain outside `public/` and are delivered by a staff-authorized Node.js route handler with private, no-store caching.

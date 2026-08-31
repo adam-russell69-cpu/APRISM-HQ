@@ -1,4 +1,5 @@
-import { Building2, CircleAlert, ClipboardList, MapPin } from "lucide-react";
+import { Building2, CircleAlert, ClipboardCheck, ClipboardList, MapPin } from "lucide-react";
+import Link from "next/link";
 import { requireStaff } from "@/lib/admin-account";
 import { Metric, Panel, PortalPageHeader } from "@/components/portal/portal-ui";
 import { updateInquiryStatus, updateServiceRequestStatus } from "./actions";
@@ -40,6 +41,8 @@ export default async function AdminPage() {
       <Metric label="Open requests" value={activeRequests.length} detail="Submitted through completion" />
       <Metric label="Open issues" value={activeIssues.length} detail="Monitoring and action items" />
     </section>
+
+    <Link href="/admin/assessments" className="mt-6 flex items-start justify-between gap-5 border border-[#a8864e]/35 bg-[#f8f5ee] p-5 transition hover:border-[#a8864e]"><div className="flex items-start gap-4"><ClipboardCheck aria-hidden="true" className="mt-1 size-5 text-[#8f713d]" /><div><p className="text-[0.58rem] font-semibold uppercase tracking-[0.17em] text-[#80632d]">Assessment workflow</p><h2 className="mt-2 font-serif text-2xl">Intake, field checklist & client report</h2><p className="mt-2 text-xs leading-6 text-black/46">Prepare, document, and save APRISM Property Assessment records.</p></div></div><span className="text-xl text-black/28">→</span></Link>
 
     <div className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
       <Panel title="Property assessment inquiries" eyebrow="Business development">
