@@ -1,7 +1,8 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { intakeFieldNames, requiredIntakeFields } from "@/lib/assessment-config";
-import { createClient } from "@/lib/supabase/server";
+import { createAssessmentIntakeClient } from "@/lib/supabase/assessment-intake";
 
 export type IntakeState = {
   status: "idle" | "error" | "success";
@@ -11,8 +12,9 @@ export type IntakeState = {
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function submitAssessmentIntake(_previousState: IntakeState, formData: FormData): Promise<IntakeState> {
-  if (String(formData.get("companyWebsite") ?? "")) {
-    return { status: "success", message: "Thank you. Your intake has been received." };
+  if (String(formData.get("aprism_check_47") ?? "")) {
+    console.info("[assessment-intake] honeypot triggered");
+    return { status: "idle", message: "" };
   }
 
   const intakeData = Object.fromEntries(intakeFieldNames.map((field) => {
@@ -30,23 +32,31 @@ export async function submitAssessmentIntake(_previousState: IntakeState, formDa
     return { status: "error", message: "Please review the form details and try again." };
   }
 
-  const supabase = await createClient();
+  const receiptToken = randomUUID();
+  const supabase = createAssessmentIntakeClient(receiptToken);
   if (!supabase) {
     return { status: "error", message: "We could not securely receive the intake right now. Please try again shortly." };
   }
 
-  const { error } = await supabase.from("property_assessments").insert({
-    status: "intake_received",
-    intake_data: intakeData,
-  });
+  const { data, error } = await supabase
+    .from("property_assessments")
+    .insert({
+      status: "intake_received",
+      intake_data: intakeData,
+      receipt_token: receiptToken,
+    })
+    .select("id")
+    .single();
 
-  if (error) {
-    console.error("APRISM assessment intake submission failed", { code: error.code });
+  if (error || !data?.id) {
+    console.error("APRISM assessment intake submission failed", { code: error?.code ?? "missing_insert_id" });
     return { status: "error", message: "We could not securely receive the intake right now. Please try again shortly." };
   }
 
+  const reference = data.id.replaceAll("-", "").slice(0, 6).toUpperCase();
+
   return {
     status: "success",
-    message: "Your property assessment intake has been received. APRISM will review it before the scheduled visit.",
+    message: `Your property assessment intake has been received. Reference: APR-${reference}`,
   };
 }

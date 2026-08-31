@@ -36,7 +36,7 @@ The schema constrains health fields to `Healthy`, `Monitor`, `Action Recommended
 - Clients cannot create, update, or delete `staff_users`; authenticated users can read only their own staff assignment.
 - Active APRISM staff can operate property records, while only owner/admin roles can manage property membership.
 - APRISM staff can read and update inquiry workflow status; anonymous visitors remain unable to read inquiries.
-- Anonymous and authenticated visitors may insert only a constrained `intake_received` assessment row with every internal field empty. They cannot read assessment records.
+- Public intake submissions may insert only a constrained `intake_received` assessment row with every internal field empty. A server-generated receipt token allows the anonymous submission request to return only its new UUID for five minutes; no intake data or internal assessment columns are granted for public reads.
 - Active APRISM staff can select, insert, update, and delete assessment records. The UPDATE policy includes both `USING` and `WITH CHECK`.
 - Client property membership does not expose assessment field notes or draft reports. A future published view must explicitly select client-safe fields.
 - The profile update policy includes both `USING` and `WITH CHECK`.

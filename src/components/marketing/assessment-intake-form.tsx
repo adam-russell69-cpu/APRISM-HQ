@@ -32,7 +32,7 @@ export function AssessmentIntakeForm() {
   }
 
   return <form action={formAction} className="space-y-5">
-    <div className="sr-only" aria-hidden="true"><label>Company website<input name="companyWebsite" tabIndex={-1} autoComplete="off" /></label></div>
+    <div className="pointer-events-none absolute left-[-10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true"><label htmlFor="aprism-check-47">Leave this field blank</label><input id="aprism-check-47" name="aprism_check_47" tabIndex={-1} autoComplete="off" aria-hidden="true" /></div>
     {intakeSections.map((section) => <fieldset key={section.eyebrow} className="border border-black/12 bg-[#f7f4ed] p-5 sm:p-8">
       <legend className="sr-only">{section.title}</legend>
       <div className="grid gap-5 lg:grid-cols-[0.28fr_0.72fr]">
