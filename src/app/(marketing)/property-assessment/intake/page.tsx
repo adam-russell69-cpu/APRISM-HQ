@@ -3,7 +3,7 @@ import { AssessmentIntakeForm } from "@/components/marketing/assessment-intake-f
 import { PageHero } from "@/components/marketing/page-hero";
 
 export const metadata: Metadata = {
-  title: "Property Assessment Intake | APRISM",
+  title: "Property Assessment Intake",
   description: "Complete the private APRISM Property Assessment Intake before a scheduled luxury home stewardship assessment in Park City or Summit County.",
   robots: { index: false, follow: false },
 };
