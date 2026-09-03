@@ -32,6 +32,12 @@
 | `/portal/documents` | Property document library |
 | `/portal/requests` | Service-request creation and history |
 | `/portal/profile` | Contact preferences and authorized memberships |
+| `/portal/business` | Business account snapshot, locations, work orders, outstanding invoices, and completed work |
+| `/portal/business/work-orders` | Account-scoped business work-order list |
+| `/portal/business/work-orders/[id]` | Work-order scope, service location, schedule, completion, and linked invoice |
+| `/portal/invoices` | Unified private/business invoice list and balances |
+| `/portal/invoices/[invoiceNumber]` | Polished invoice, line items, payments, terms, and Stripe-hosted payment CTAs |
+| `/portal/invoices/[invoiceNumber]/pdf` | RLS-authorized short-lived signed invoice PDF download |
 
 ## APRISM administration
 
@@ -40,6 +46,13 @@
 | `/admin` | Protected owner/staff console for inquiries, properties, requests, and issues |
 | `/admin/assessments` | Protected field checklist, report builder, saved assessment records, and staff-only PDF references |
 | `/admin/assessments/documents/[document]` | Authenticated staff download boundary for internal assessment PDFs |
+| `/admin/billing` | Staff-only clients, business accounts, work orders, invoices, balances, overdue status, and payment activity |
+
+## Payment API
+
+| Route | Purpose |
+| --- | --- |
+| `/api/stripe/webhook` | Raw-body Stripe signature verification and idempotent payment/invoice processing |
 
 ## Framework routes
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, ClipboardCheck, FileText, Gauge, Handshake, LogOut, MessageSquareText, Settings, TriangleAlert, Users, Wrench } from "lucide-react";
+import { Building2, ClipboardCheck, CreditCard, FileText, Gauge, Handshake, LogOut, MessageSquareText, Settings, TriangleAlert, Users, Wrench } from "lucide-react";
 import { adminSignOut } from "@/app/admin/actions";
 import type { StaffAccount } from "@/lib/admin-account";
 
@@ -11,6 +11,7 @@ const navigation = [
   { href: "/admin/assessments", label: "Assessments", icon: ClipboardCheck },
   { href: "/admin/properties", label: "Properties", icon: Building2 },
   { href: "/admin/clients", label: "Clients & Leads", icon: Users },
+  { href: "/admin/billing", label: "Billing", icon: CreditCard },
   { href: "/admin/requests", label: "Requests", icon: MessageSquareText },
   { href: "/admin/issues", label: "Issues", icon: TriangleAlert },
   { href: "/admin/documents", label: "Documents", icon: FileText },

@@ -12,6 +12,9 @@ const toneClasses: Record<string, string> = {
   complete: "border-[#607568]/30 bg-[#607568]/9 text-[#4d6356]",
   resolved: "border-[#607568]/30 bg-[#607568]/9 text-[#4d6356]",
   published: "border-[#607568]/30 bg-[#607568]/9 text-[#4d6356]",
+  paid: "border-[#607568]/30 bg-[#607568]/9 text-[#4d6356]",
+  succeeded: "border-[#607568]/30 bg-[#607568]/9 text-[#4d6356]",
+  invoiced: "border-[#607568]/30 bg-[#607568]/9 text-[#4d6356]",
   "intake received": "border-[#a8864e]/35 bg-[#a8864e]/9 text-[#745a2b]",
   new: "border-[#a8864e]/35 bg-[#a8864e]/9 text-[#745a2b]",
   "field assessment": "border-[#68767a]/30 bg-[#68767a]/9 text-[#506064]",
@@ -21,6 +24,12 @@ const toneClasses: Record<string, string> = {
   submitted: "border-[#a8864e]/30 bg-[#a8864e]/9 text-[#745a2b]",
   reviewing: "border-[#68767a]/30 bg-[#68767a]/9 text-[#506064]",
   scheduled: "border-[#68767a]/30 bg-[#68767a]/9 text-[#506064]",
+  pending: "border-[#68767a]/30 bg-[#68767a]/9 text-[#506064]",
+  sent: "border-[#a8864e]/30 bg-[#a8864e]/9 text-[#745a2b]",
+  "partially paid": "border-[#a8864e]/30 bg-[#a8864e]/9 text-[#745a2b]",
+  overdue: "border-[#83524d]/35 bg-[#83524d]/10 text-[#71413d]",
+  failed: "border-[#83524d]/35 bg-[#83524d]/10 text-[#71413d]",
+  refunded: "border-[#76688a]/30 bg-[#76688a]/9 text-[#5e506f]",
   "in progress": "border-[#76688a]/30 bg-[#76688a]/9 text-[#5e506f]",
 };
 

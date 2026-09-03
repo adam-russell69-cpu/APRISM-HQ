@@ -11,6 +11,7 @@ const sections = [
   ["/admin/assessments", "Assessments"],
   ["/admin/properties", "Properties"],
   ["/admin/clients", "Clients & Leads"],
+  ["/admin/billing", "Billing"],
   ["/admin/requests", "Requests"],
   ["/admin/issues", "Issues"],
   ["/admin/documents", "Documents"],

@@ -9,6 +9,8 @@ APRISM is a luxury asset stewardship company serving Park City, Deer Valley, Pro
 - Mobile-first marketing site with service, membership, about, service-area, and property-assessment routes
 - Premium dark charcoal, warm gold, editorial design system
 - Client portal concepts for property health, inspections, maintenance, issues, documents, vendors, photographs, and service requests
+- Unified private/business client accounts, work orders, invoices, payments, and a Mountain Time Homes pilot
+- Stripe-hosted ACH/card Checkout boundary with signature-verified, idempotent webhooks
 - Next.js App Router, React 19, TypeScript, Tailwind CSS 4, and ESLint
 - Supabase SSR clients and Next.js 16 `proxy.ts` session refresh/auth boundary
 - Initial PostgreSQL migration with UUID primary keys, timestamps, indexes, least-privilege grants, and RLS on all exposed tables
@@ -40,8 +42,12 @@ Without Supabase credentials, the public site and portal sample data work in pre
 | `NEXT_PUBLIC_SUPABASE_URL` | For live portal | URL of the new APRISM Supabase project |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | For live portal | Publishable browser-safe key for that project |
 | `NEXT_PUBLIC_SITE_URL` | Before deployment | Trusted canonical origin for metadata, sitemap, and auth |
+| `SUPABASE_SECRET_KEY` | Live payments/PDFs | Server-only key for verified webhook writes and signed invoice downloads |
+| `STRIPE_SECRET_KEY` | Live payments | Server-only Stripe API key |
+| `STRIPE_WEBHOOK_SECRET` | Live payments | Server-only signing secret for `/api/stripe/webhook` |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe client readiness | Browser-safe key reserved for a future Elements flow; hosted Checkout does not require it |
 
-Never place a Supabase secret key or `service_role` key in a `NEXT_PUBLIC_*` variable. This app does not require or expose a service-role credential.
+Never place a Supabase secret key, legacy `service_role` key, Stripe secret key, or Stripe webhook secret in a `NEXT_PUBLIC_*` variable. Server secrets are used only by `server-only` modules.
 
 ## Supabase setup
 
@@ -49,9 +55,10 @@ Never place a Supabase secret key or `service_role` key in a `NEXT_PUBLIC_*` var
 2. Install the current Supabase CLI and run `supabase link --project-ref <aprism-project-ref>`.
 3. Review and apply `supabase/migrations/20260828182825_initial_aprism_schema.sql`.
 4. Run `supabase db advisors` and `supabase test db` against a local or preview database.
-5. Create Auth users, insert their `profiles` rows, create properties, and provision access through `property_members`.
+5. Create Auth users, insert their `profiles` rows, and provision property access through `property_members` or account access through `client_account_members`.
 6. Add the public project URL and publishable key to `.env.local` and the Vercel project environment.
 7. Configure the allowed Site URL and redirect URLs in Supabase Auth.
+8. Configure Stripe sandbox credentials and the signed `/api/stripe/webhook` endpoint before testing payments.
 
 The database intentionally gives clients no ability to create or edit `property_members`. Client access is always provisioned administratively and enforced by RLS.
 
@@ -69,7 +76,7 @@ For final release checks, follow [docs/LAUNCH_CHECKLIST.md](docs/LAUNCH_CHECKLIS
 The project is Vercel-ready but is not deployed from this branch.
 
 1. Import the repository into Vercel.
-2. Set the three environment variables for Preview and Production.
+2. Set the Supabase, site-origin, and Stripe variables listed above in the appropriate Preview and Production scopes.
 3. Verify Supabase Auth redirect URLs against the Vercel Preview and production domains.
 4. Run the launch checklist on a Preview deployment.
 5. Promote only after production credentials, form delivery, legal content, and client data onboarding are approved.
@@ -83,11 +90,14 @@ Complete in this branch:
 - Property assessment form with validated placeholder Server Action
 - Portal UI and realistic sample property record
 - Supabase-ready SSR/auth boundary and secure initial schema
-- Documentation, SEO, lint/build, and browser-verification workflow
+- Business-client portal, unified invoicing, exact payment ledger, and admin billing view
+- Server-only Stripe Checkout/customer boundary and verified idempotent webhook processing
+- Documentation, SEO, lint/build verification, and browser-acceptance checklist
 
 Still required for a live launch:
 
 - New APRISM Supabase credentials and production Auth configuration
 - Real property/client records and storage buckets
+- Live Stripe credentials, webhook registration, ACH/card sandbox evidence, and reconciliation sign-off
 - Final inquiry delivery destination (Supabase table, CRM, or email workflow)
 - Production domain, analytics/consent decisions, legal/privacy copy, and deployment approval
