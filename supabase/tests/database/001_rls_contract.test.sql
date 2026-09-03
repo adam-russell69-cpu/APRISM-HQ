@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(10);
+select plan(12);
 
 select extensions.is(
   (
@@ -119,6 +119,48 @@ select extensions.ok(
       and p.prosecdef
   ),
   'Staff authorization helpers run as security invoker'
+);
+
+select extensions.ok(
+  not exists (
+    select 1
+    from (values
+      ('properties'), ('property_systems'), ('inspections'), ('inspection_items'),
+      ('maintenance_tasks'), ('issues'), ('service_requests'), ('documents'),
+      ('vendors'), ('property_vendors')
+    ) as protected_table(table_name)
+    where not exists (
+      select 1
+      from pg_policies p
+      where p.schemaname = 'public'
+        and p.tablename = protected_table.table_name
+        and p.cmd = 'SELECT'
+        and 'authenticated' = any(p.roles)
+        and p.qual ilike '%auth.uid%'
+        and p.qual ilike '%property_members%'
+    )
+  ),
+  'Every property-data table has an authenticated member-scoped select policy'
+);
+
+select extensions.ok(
+  not exists (
+    select 1
+    from pg_policies p
+    where p.schemaname = 'public'
+      and p.tablename = any(array[
+        'profiles', 'properties', 'property_members', 'property_systems',
+        'inspections', 'inspection_items', 'maintenance_tasks', 'issues',
+        'service_requests', 'documents', 'vendors', 'property_vendors'
+      ])
+      and 'authenticated' = any(p.roles)
+      and p.cmd in ('SELECT', 'ALL')
+      and (
+        p.qual is null
+        or lower(regexp_replace(p.qual, '\s', '', 'g')) in ('true', '(true)')
+      )
+  ),
+  'No authenticated read policy grants unrestricted access to member data'
 );
 
 select * from extensions.finish();

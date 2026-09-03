@@ -9,3 +9,11 @@ export function Panel({ title, eyebrow, action, children, className = "" }: { ti
 export function Metric({ label, value, detail }: { label: string; value: string | number; detail: string }) {
   return <article className="border border-black/10 bg-[#f8f7f2] p-5"><p className="text-[0.54rem] font-semibold uppercase tracking-[0.15em] text-black/36">{label}</p><p className="mt-5 font-serif text-4xl leading-none">{value}</p><p className="mt-3 text-xs text-black/42">{detail}</p></article>;
 }
+
+export function PortalDataNotice({ message }: { message: string }) {
+  return <div role="alert" className="mt-7 border border-[#a5534d]/25 bg-[#a5534d]/8 px-5 py-4 text-sm leading-6 text-[#713a36]">{message}</div>;
+}
+
+export function EmptyState({ title, description }: { title: string; description: string }) {
+  return <div className="px-5 py-10 text-center sm:px-6"><h3 className="font-serif text-2xl">{title}</h3><p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-black/42">{description}</p></div>;
+}
