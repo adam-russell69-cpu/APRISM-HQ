@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireStaff } from "@/lib/admin-account";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const accountTypes = new Set(["private", "business"]);
 const accountStatuses = new Set(["prospect", "active", "inactive"]);
@@ -44,6 +45,17 @@ function accountInput(formData: FormData) {
 
 function clientErrorPath(id: string, message: string) {
   return `/admin/clients/${id}?error=${actionMessage(message)}`;
+}
+
+function siteOrigin() {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (!configured) return null;
+  try {
+    const url = new URL(configured);
+    return url.origin;
+  } catch {
+    return null;
+  }
 }
 
 export async function createClientAccount(formData: FormData) {
@@ -101,6 +113,63 @@ export async function updateClientAccount(formData: FormData) {
   revalidatePath("/admin/clients");
   revalidatePath(`/admin/clients/${id}`);
   redirect(`/admin/clients/${id}?notice=${actionMessage("Account details updated.")}`);
+}
+
+export async function inviteClientAccountMember(formData: FormData) {
+  const { supabase } = await requireStaff();
+  const accountId = field(formData, "account_id", 36);
+  const email = field(formData, "email", 254).toLowerCase();
+  const fullName = optional(formData, "full_name", 160);
+  const role = field(formData, "role", 20);
+
+  if (!uuidPattern.test(accountId) || !emailPattern.test(email) || !memberRoles.has(role)) {
+    if (uuidPattern.test(accountId)) redirect(clientErrorPath(accountId, "Enter a valid email address and member role."));
+    redirect("/admin/clients?view=clients");
+  }
+
+  const { data: account, error: accountError } = await supabase.from("client_accounts")
+    .select("id, display_name, status")
+    .eq("id", accountId)
+    .maybeSingle();
+  if (accountError || !account) redirect(clientErrorPath(accountId, "The client account could not be verified."));
+  if (account.status === "inactive") redirect(clientErrorPath(accountId, "Reactivate this client account before inviting a portal member."));
+
+  const admin = createAdminClient();
+  const origin = siteOrigin();
+  if (!admin || !origin) {
+    console.error("APRISM client invitation is not configured", { adminConfigured: Boolean(admin), siteOriginConfigured: Boolean(origin) });
+    redirect(clientErrorPath(accountId, "Client invitations are not configured on the server."));
+  }
+
+  const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
+    redirectTo: `${origin}/auth/invite`,
+    data: fullName ? { full_name: fullName } : undefined,
+  });
+  const userId = invited.user?.id;
+  if (inviteError || !userId) {
+    console.error("APRISM client invitation failed", { code: inviteError?.code ?? "missing_invited_user_id" });
+    redirect(clientErrorPath(accountId, inviteError?.status === 422
+      ? "That email already has an Auth account. Add the existing Auth user instead."
+      : "The invitation could not be sent. No portal membership was added."));
+  }
+
+  const { error: membershipError } = await admin.from("client_account_members").insert({
+    client_account_id: accountId,
+    user_id: userId,
+    role,
+    active: true,
+  });
+
+  if (membershipError) {
+    console.error("APRISM invited membership create failed", { code: membershipError.code });
+    const { error: rollbackError } = await admin.auth.admin.deleteUser(userId);
+    if (rollbackError) console.error("APRISM invited Auth user rollback failed", { code: rollbackError.code });
+    redirect(clientErrorPath(accountId, "The invitation was cancelled because account access could not be provisioned."));
+  }
+
+  revalidatePath(`/admin/clients/${accountId}`);
+  revalidatePath("/portal/business");
+  redirect(`/admin/clients/${accountId}?notice=${actionMessage(`Invitation sent to ${email}. Membership is ${role} — active.`)}`);
 }
 
 export async function addClientAccountMember(formData: FormData) {
