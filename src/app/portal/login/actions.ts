@@ -8,6 +8,7 @@ export type LoginState = { status: "idle" | "error"; message: string };
 export async function signIn(_previousState: LoginState, formData: FormData): Promise<LoginState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const requestedPath = String(formData.get("next") ?? "");
   if (!email || !password) return { status: "error", message: "Enter your email and password." };
 
   const supabase = await createClient();
@@ -16,5 +17,6 @@ export async function signIn(_previousState: LoginState, formData: FormData): Pr
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { status: "error", message: "We could not sign you in with those credentials." };
 
-  redirect("/portal");
+  const nextPath = /^\/(admin|portal)(\/|$)/.test(requestedPath) ? requestedPath : "/portal";
+  redirect(nextPath);
 }

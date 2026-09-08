@@ -54,4 +54,10 @@ Fonts are loaded through `next/font` for self-hosted production assets and stabl
 
 Use authentic Park City mountain residences, architectural details, building systems, and specialty assets. Favor quiet dawn/dusk light, material texture, winter readiness, and documentary detail. Avoid generic contractors, tools-in-hand stock photos, or theatrical luxury staging.
 
-The MVP uses restrained CSS atmospheric landscapes so the experience is complete without unlicensed placeholder photography. Final photography can replace these fields without changing the design system.
+The website uses original, text-free Park City architectural imagery created for APRISM. Future commissioned property photography can replace these assets without changing the design system.
+
+## Company story
+
+APRISM LLC was founded by Adam Russell after more than 25 years across technical service, preventive maintenance, hospitality, engineering, and operations. Founder language should establish credible judgment and stewardship without turning APRISM into a personality-led handyman brand.
+
+**Brand promise:** If it matters to our client, it matters to APRISM.

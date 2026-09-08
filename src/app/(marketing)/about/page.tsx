@@ -14,6 +14,13 @@ const principles = [
   ["Accountable through completion", "Coordination is only useful when someone remains responsible for the final outcome."],
 ];
 
+const founderCredentials = [
+  "More than 25 years across technical service, maintenance, hospitality, engineering, and operations",
+  "Motorcycle Mechanics Institute training and Harley-Davidson service expertise",
+  "Preventive-maintenance leadership, building systems, vendor management, and quality control",
+  "A career centered on keeping valuable assets operational and customers confident",
+];
+
 export default function AboutPage() {
   return (
     <main>
@@ -28,6 +35,28 @@ export default function AboutPage() {
         </div>
         <div className="mx-auto mt-16 grid max-w-7xl gap-px border border-black/12 bg-black/12 px-0 sm:grid-cols-2 lg:grid-cols-4">
           {principles.map(([title, copy], index) => <article key={title} className="bg-[#f7f5ee] p-7"><p className="text-[0.56rem] uppercase tracking-[0.2em] text-black/30">0{index + 1}</p><h3 className="mt-10 font-serif text-3xl">{title}</h3><p className="mt-5 text-sm leading-6 text-black/52">{copy}</p></article>)}
+        </div>
+      </section>
+      <section className="editorial-grid bg-[#f7f5ee] py-20 text-[#171a19] sm:py-28">
+        <div className="mx-auto grid max-w-7xl gap-14 px-5 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:px-12">
+          <div>
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-[#8f713d]">Founder · Adam Russell</p>
+            <h2 className="mt-6 font-serif text-[clamp(3rem,6vw,5.5rem)] leading-[0.92] tracking-[-0.04em]">Built from a lifetime of stewardship.</h2>
+          </div>
+          <div className="lg:pt-16">
+            <p className="max-w-2xl text-base leading-8 text-black/58">APRISM was founded by Adam Russell after more than 25 years working where technical judgment, preventive maintenance, service leadership, and hospitality meet. Across motorcycles, facilities, property systems, and operations, the lesson remained the same: expensive failures usually begin as small conditions that were not noticed, documented, communicated, or addressed early enough.</p>
+            <p className="mt-6 max-w-2xl text-base leading-8 text-black/58">APRISM turns that experience into one accountable relationship for the care of exceptional homes and specialty assets.</p>
+            <ul className="mt-9 grid gap-4 border-t border-black/12 pt-7 text-sm leading-6 text-black/62">
+              {founderCredentials.map((credential) => <li key={credential} className="flex gap-4"><span aria-hidden="true" className="mt-2 size-1.5 shrink-0 bg-[#a7864e]" />{credential}</li>)}
+            </ul>
+          </div>
+        </div>
+      </section>
+      <section className="bg-[#c4a368] py-16 text-[#101211] sm:py-20">
+        <div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-3 lg:px-12">
+          <div><p className="text-[0.58rem] font-semibold uppercase tracking-[0.2em] text-black/50">Mission</p><p className="mt-5 font-serif text-3xl leading-tight">Proactive stewardship through disciplined systems, thoughtful craftsmanship, and concierge-level service.</p></div>
+          <div><p className="text-[0.58rem] font-semibold uppercase tracking-[0.2em] text-black/50">Vision</p><p className="mt-5 font-serif text-3xl leading-tight">To become the Mountain West’s most trusted luxury asset stewardship company.</p></div>
+          <div><p className="text-[0.58rem] font-semibold uppercase tracking-[0.2em] text-black/50">Brand promise</p><p className="mt-5 font-serif text-3xl leading-tight">If it matters to our client, it matters to APRISM.</p></div>
         </div>
       </section>
       <section className="bg-[#111414] py-20 sm:py-28">

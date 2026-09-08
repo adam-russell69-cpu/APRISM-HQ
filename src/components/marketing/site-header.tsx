@@ -3,6 +3,7 @@
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { BrandSignature } from "./brand-signature";
 
 const navItems = [
   { href: "/property-services", label: "Services" },
@@ -15,11 +16,9 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="absolute inset-x-0 top-0 z-50 border-b border-white/10 bg-[#0b0d0d]/35 backdrop-blur-sm">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-12">
-        <Link href="/" className="relative z-50 text-lg font-semibold tracking-[0.34em]" onClick={() => setOpen(false)}>
-          APRISM
-        </Link>
+    <header className="absolute inset-x-0 top-0 z-50 border-b border-white/12 bg-[#090b0b]/72 backdrop-blur-md">
+      <div className="mx-auto flex h-24 max-w-[90rem] items-center justify-between px-5 sm:px-8 lg:px-12">
+        <BrandSignature className="relative z-50" onClick={() => setOpen(false)} />
         <nav aria-label="Primary navigation" className="hidden items-center gap-7 text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-white/64 lg:flex">
           {navItems.map((item) => (
             <Link key={item.href} href={item.href} className="transition hover:text-[#d7ba82]">
@@ -31,8 +30,8 @@ export function SiteHeader() {
           <Link href="/portal" className="hidden text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-white/55 transition hover:text-white sm:block">
             Client Portal
           </Link>
-          <Link href="/contact" className="hidden border border-[#c7a76b]/60 px-4 py-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.15em] text-[#e0c58f] transition hover:bg-[#c7a76b] hover:text-[#0b0d0d] md:inline-flex">
-            Property Assessment
+          <Link href="/contact" className="hidden bg-[#c7a76b] px-5 py-3 text-[0.6rem] font-semibold uppercase tracking-[0.17em] text-[#0b0d0d] transition hover:bg-[#e0c58f] md:inline-flex">
+            Request Assessment
           </Link>
           <button type="button" aria-label={open ? "Close navigation" : "Open navigation"} aria-expanded={open} onClick={() => setOpen((value) => !value)} className="relative z-50 inline-flex size-11 items-center justify-center border border-white/15 text-white lg:hidden">
             {open ? <X aria-hidden="true" className="size-5" /> : <Menu aria-hidden="true" className="size-5" />}

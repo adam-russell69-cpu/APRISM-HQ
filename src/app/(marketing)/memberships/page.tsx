@@ -2,7 +2,14 @@ import { Check } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHero } from "@/components/marketing/page-hero";
+import { UsdPrice } from "@/components/marketing/usd-price";
 import { memberships } from "@/lib/marketing";
+
+const serviceRates = [
+  { label: "Property Assessment / Onboarding", amount: "495" },
+  { label: "Standard field service", amount: "125", suffix: " / hour" },
+  { label: "Priority / after-hours", amount: "185", suffix: " / hour" },
+];
 
 export const metadata: Metadata = {
   title: "Property Stewardship Memberships",
@@ -21,7 +28,7 @@ export default function MembershipsPage() {
                 {membership.featured ? <p className="absolute right-5 top-5 text-[0.55rem] font-semibold uppercase tracking-[0.18em] text-[#d8bd88]">Most requested</p> : null}
                 <p className={`text-[0.6rem] font-semibold uppercase tracking-[0.2em] ${membership.featured ? "text-[#d8bd88]" : "text-[#8f713d]"}`}>APRISM</p>
                 <h2 className="mt-8 font-serif text-4xl leading-none">{membership.name}</h2>
-                <div className="mt-7 flex items-end gap-1"><p className="font-serif text-4xl leading-none">{membership.price}</p><p className={`pb-1 text-xs ${membership.featured ? "text-white/45" : "text-black/45"}`}>{membership.cadence}</p></div>
+                <div className="mt-7 flex items-end gap-1"><p className="font-serif text-4xl leading-none"><UsdPrice {...membership.price} /></p><p className={`pb-1 text-xs ${membership.featured ? "text-white/45" : "text-black/45"}`}>{membership.cadence}</p></div>
                 <p className={`mt-6 min-h-24 text-sm leading-6 ${membership.featured ? "text-white/52" : "text-black/55"}`}>{membership.description}</p>
                 <ul className={`mt-6 grid gap-4 border-t pt-6 text-sm ${membership.featured ? "border-white/12 text-white/70" : "border-black/12 text-black/68"}`}>
                   {membership.features.map((feature) => <li key={feature} className="flex gap-3"><Check aria-hidden="true" className={`mt-0.5 size-4 shrink-0 ${membership.featured ? "text-[#d8bd88]" : "text-[#8f713d]"}`} /><span>{feature}</span></li>)}
@@ -31,11 +38,7 @@ export default function MembershipsPage() {
             ))}
           </div>
           <div className="mt-12 grid gap-px border border-black/12 bg-black/12 md:grid-cols-3">
-            {[
-              ["Property Assessment / Onboarding", "$495"],
-              ["Standard field service", "$125 / hour"],
-              ["Priority / after-hours", "$185 / hour"],
-            ].map(([label, price]) => <div key={label} className="bg-[#e8e5dc] p-6"><p className="text-xs uppercase tracking-[0.14em] text-black/45">{label}</p><p className="mt-3 font-serif text-3xl">{price}</p></div>)}
+            {serviceRates.map((rate) => <div key={rate.label} className="bg-[#e8e5dc] p-6"><p className="text-xs uppercase tracking-[0.14em] text-black/45">{rate.label}</p><p className="mt-3 font-serif text-3xl"><UsdPrice amount={rate.amount} suffix={rate.suffix} /></p></div>)}
           </div>
           <p className="mt-6 max-w-3xl text-xs leading-6 text-black/50">Memberships establish scheduled oversight, priority, and record continuity. Field labor, materials, third-party vendor charges, and project work are billed separately unless expressly included in a written service plan. Membership labor is not unlimited.</p>
         </div>

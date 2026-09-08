@@ -1,16 +1,18 @@
 "use client";
 
-import { Building2, ClipboardCheck, FileText, Home, Menu, Settings, UserRound, Wrench, X, Zap } from "lucide-react";
+import { BriefcaseBusiness, Building2, ClipboardCheck, FileText, Home, Menu, ReceiptText, Settings, UserRound, Wrench, X, Zap } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
 const navItems = [
   { href: "/portal", label: "Overview", icon: Home },
+  { href: "/portal/business", label: "Business Account", icon: BriefcaseBusiness },
   { href: "/portal/properties", label: "Properties", icon: Building2 },
   { href: "/portal/inspections", label: "Inspections", icon: ClipboardCheck },
   { href: "/portal/maintenance", label: "Maintenance", icon: Wrench },
   { href: "/portal/issues", label: "Issues", icon: Zap },
   { href: "/portal/documents", label: "Documents", icon: FileText },
+  { href: "/portal/invoices", label: "Invoices", icon: ReceiptText },
   { href: "/portal/requests", label: "Requests", icon: Settings },
   { href: "/portal/profile", label: "Profile", icon: UserRound },
 ];
@@ -18,11 +20,11 @@ const navItems = [
 function PortalNavigation({ onNavigate, signOutAction }: { onNavigate?: () => void; signOutAction: () => Promise<void> }) {
   return (
     <>
-      <div className="px-6 pb-7 pt-7"><Link href="/portal" onClick={onNavigate} className="text-lg font-semibold tracking-[0.32em] text-white">APRISM</Link><p className="mt-2 text-[0.54rem] uppercase tracking-[0.2em] text-white/32">Private Client Portal</p></div>
+      <div className="px-6 pb-7 pt-7"><Link href="/portal" onClick={onNavigate} className="text-lg font-semibold tracking-[0.32em] text-white">APRISM</Link><p className="mt-2 text-[0.54rem] uppercase tracking-[0.2em] text-white/32">Client Portal</p></div>
       <nav aria-label="Portal navigation" className="flex-1 px-3">
         {navItems.map((item) => { const Icon = item.icon; return <Link key={item.href} href={item.href} onClick={onNavigate} className="flex items-center gap-3 border-l border-transparent px-4 py-3 text-xs font-medium text-white/48 transition hover:border-[#c7a76b] hover:bg-white/[0.04] hover:text-white"><Icon aria-hidden="true" className="size-4" />{item.label}</Link>; })}
       </nav>
-      <div className="mx-4 mb-4 border border-white/10 p-4"><p className="text-[0.54rem] font-semibold uppercase tracking-[0.16em] text-[#d6b879]">MVP preview</p><p className="mt-2 text-[0.66rem] leading-5 text-white/35">Sample property data. Live records appear after APRISM Supabase is connected.</p></div>
+      <div className="mx-4 mb-4 border border-white/10 p-4"><p className="text-[0.54rem] font-semibold uppercase tracking-[0.16em] text-[#d6b879]">Pilot portal</p><p className="mt-2 text-[0.66rem] leading-5 text-white/35">Your secure account is active. Property records are finalized as APRISM onboarding is completed.</p></div>
       <form action={signOutAction} className="mx-4 mb-6"><button type="submit" className="flex min-h-11 w-full items-center justify-center border border-white/12 text-[0.58rem] font-semibold uppercase tracking-[0.15em] text-white/45 transition hover:text-white">Sign out</button></form>
     </>
   );

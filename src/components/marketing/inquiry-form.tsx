@@ -1,8 +1,9 @@
 "use client";
 
 import { ArrowRight, CheckCircle2 } from "lucide-react";
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { submitInquiry, type InquiryState } from "@/app/(marketing)/contact/actions";
+import { trackMarketingEvent } from "@/components/analytics/aprism-analytics";
 
 const initialState: InquiryState = { status: "idle", message: "" };
 const serviceOptions = ["Property Services", "Estate Management", "Home Watch", "New Home Stewardship", "APRISM Moto"];
@@ -12,9 +13,32 @@ const labelClass = "text-[0.62rem] font-semibold uppercase tracking-[0.15em] tex
 
 export function InquiryForm() {
   const [state, formAction, pending] = useActionState(submitInquiry, initialState);
+  const assessmentStarted = useRef(false);
+  const conversionTracked = useRef(false);
+  const conversionLeadType = state.analytics?.lead_type;
+  const conversionServiceInterest = state.analytics?.service_interest;
+
+  function trackAssessmentStart() {
+    if (assessmentStarted.current) return;
+    assessmentStarted.current = true;
+    trackMarketingEvent("assessment_start", { lead_type: "property_assessment" });
+  }
+
+  useEffect(() => {
+    if (state.status !== "success" || !conversionLeadType || !conversionServiceInterest || conversionTracked.current) return;
+
+    conversionTracked.current = true;
+    trackMarketingEvent("generate_lead", {
+      lead_type: conversionLeadType,
+      service_interest: conversionServiceInterest,
+    });
+  }, [conversionLeadType, conversionServiceInterest, state.status]);
 
   return (
-    <form action={formAction} className="border border-black/12 bg-[#f7f5ee] p-5 sm:p-8" noValidate>
+    <form action={formAction} className="border border-black/12 bg-[#f7f5ee] p-5 sm:p-8" onFocusCapture={trackAssessmentStart}>
+      <div className="absolute -left-[10000px] top-auto size-px overflow-hidden" aria-hidden="true">
+        <label>Company website<input type="text" name="companyWebsite" tabIndex={-1} autoComplete="off" /></label>
+      </div>
       <div className="grid gap-6 sm:grid-cols-2">
         <label className={labelClass}>Name<input className={inputClass} type="text" name="name" autoComplete="name" required /></label>
         <label className={labelClass}>Email<input className={inputClass} type="email" name="email" autoComplete="email" required /></label>
@@ -43,7 +67,7 @@ export function InquiryForm() {
         <label className={labelClass}>Best time to reach you<input className={inputClass} type="text" name="preferredTime" placeholder="Optional" /></label>
       </div>
 
-      <label className={`${labelClass} mt-7 block`}>Tell us about the property and your priorities<textarea className={`${inputClass} min-h-36 resize-y py-4`} name="message" required /></label>
+      <label className={`${labelClass} mt-7 block`}>Tell us about the property and your priorities<textarea className={`${inputClass} min-h-36 resize-y py-4`} name="message" minLength={10} maxLength={4000} required /></label>
 
       <div className="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <p className="max-w-lg text-xs leading-5 text-black/42">Your information is used only to understand the property and respond to this request.</p>

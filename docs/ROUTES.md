@@ -14,12 +14,15 @@
 | `/about` | APRISM philosophy and operating principles |
 | `/service-area` | Park City, Deer Valley, Promontory, and Summit County coverage |
 | `/contact` | Premium property-assessment inquiry form |
+| `/property-assessment/intake` | Scheduled-client electronic property assessment intake and public fillable PDF |
+| `/privacy` | Website and portal privacy notice |
+| `/terms` | Website, membership, and portal terms |
 
 ## Client portal
 
 | Route | Purpose |
 | --- | --- |
-| `/portal/login` | Supabase Auth sign-in and disconnected-project preview entry |
+| `/portal/login` | Supabase Auth sign-in |
 | `/portal` | Property health dashboard and current operating picture |
 | `/portal/properties` | Client property portfolio |
 | `/portal/properties/[id]` | Overview, systems, equipment, history, documents, vendors, photos, calendar |
@@ -29,6 +32,27 @@
 | `/portal/documents` | Property document library |
 | `/portal/requests` | Service-request creation and history |
 | `/portal/profile` | Contact preferences and authorized memberships |
+| `/portal/business` | Business account snapshot, locations, work orders, outstanding invoices, and completed work |
+| `/portal/business/work-orders` | Account-scoped business work-order list |
+| `/portal/business/work-orders/[id]` | Work-order scope, service location, schedule, completion, and linked invoice |
+| `/portal/invoices` | Unified private/business invoice list and balances |
+| `/portal/invoices/[invoiceNumber]` | Polished invoice, line items, payments, terms, and Stripe-hosted payment CTAs |
+| `/portal/invoices/[invoiceNumber]/pdf` | RLS-authorized short-lived signed invoice PDF download |
+
+## APRISM administration
+
+| Route | Purpose |
+| --- | --- |
+| `/admin` | Protected owner/staff console for inquiries, properties, requests, and issues |
+| `/admin/assessments` | Protected field checklist, report builder, saved assessment records, and staff-only PDF references |
+| `/admin/assessments/documents/[document]` | Authenticated staff download boundary for internal assessment PDFs |
+| `/admin/billing` | Staff-only clients, business accounts, work orders, invoices, balances, overdue status, and payment activity |
+
+## Payment API
+
+| Route | Purpose |
+| --- | --- |
+| `/api/stripe/webhook` | Raw-body Stripe signature verification and idempotent payment/invoice processing |
 
 ## Framework routes
 
@@ -39,4 +63,4 @@
 | `/manifest.webmanifest` | Application identity and theme |
 | `/opengraph-image` | Branded social preview image |
 
-Portal sample routes are visible without credentials only in explicit MVP preview mode. Once Supabase credentials are present, `src/proxy.ts` requires a valid session for every portal route except `/portal/login`.
+`src/proxy.ts` requires a valid session for every portal and admin route except `/portal/login`. The `/admin` layout then requires an active `staff_users` assignment; ordinary clients are returned to the client portal.
