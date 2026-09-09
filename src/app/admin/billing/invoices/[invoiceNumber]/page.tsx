@@ -33,9 +33,8 @@ export default async function AdminInvoicePage({ params }: { params: Promise<{ i
     return { ...item, signedUrl: data?.signedUrl ?? null };
   }));
 
-  const clientName = Array.isArray(invoice.client_accounts)
-    ? invoice.client_accounts[0]?.display_name
-    : invoice.client_accounts?.display_name;
+  const relation = invoice.client_accounts as { display_name: string } | { display_name: string }[] | null;
+  const clientName = Array.isArray(relation) ? relation[0]?.display_name : relation?.display_name;
 
   return <main className="mx-auto max-w-5xl px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
     <Link href="/admin/billing" className="mb-5 inline-flex min-h-10 items-center gap-2 text-xs font-semibold text-black/45 hover:text-black"><ArrowLeft className="size-4" />Billing</Link>
