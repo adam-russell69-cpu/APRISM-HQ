@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -11,6 +12,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { UsdPrice } from "@/components/marketing/usd-price";
 import { healthStatuses, memberships } from "@/lib/marketing";
+
+export const metadata: Metadata = {
+  title: "APRISM | Luxury Asset Stewardship in Park City",
+  description:
+    "Proactive property, estate, and specialty asset stewardship for Park City and the Wasatch Back.",
+  alternates: { canonical: "/" },
+  openGraph: { url: "/" },
+};
 
 const stewardshipServices = [
   { title: "Property Stewardship", copy: "Proactive care, preventive maintenance, and a living property record.", href: "/property-services", icon: House },
