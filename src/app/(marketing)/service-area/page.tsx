@@ -5,6 +5,8 @@ import { PageHero } from "@/components/marketing/page-hero";
 export const metadata: Metadata = {
   title: "Park City & Summit County Service Area",
   description: "APRISM serves luxury homes in Park City, Deer Valley, Promontory, and select Summit County and Wasatch Back communities.",
+  alternates: { canonical: "/service-area" },
+  openGraph: { url: "/service-area" },
 };
 
 const areas = [
