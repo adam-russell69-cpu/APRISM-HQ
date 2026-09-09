@@ -4,7 +4,12 @@ import { serviceBySlug } from "@/lib/marketing";
 
 const service = serviceBySlug.moto;
 
-export const metadata: Metadata = { title: service.seoTitle, description: service.seoDescription };
+export const metadata: Metadata = {
+  title: service.seoTitle,
+  description: service.seoDescription,
+  alternates: { canonical: "/moto" },
+  openGraph: { url: "/moto" },
+};
 
 export default function MotoPage() {
   return (
