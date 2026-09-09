@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireStaff } from "@/lib/admin-account";
 
@@ -121,5 +122,17 @@ export async function sendInvoiceEmail(formData: FormData) {
     invoicePath(invoiceNumber, response.status === 401 ? "not-configured" : "failed");
   }
 
+  const { error: statusError } = await supabase.from("invoices")
+    .update({ status: "sent" })
+    .eq("id", invoice.id)
+    .eq("status", "draft");
+
+  if (statusError) {
+    console.error("[invoice-email] Invoice sent but status update failed", { invoiceNumber, code: statusError.code });
+  }
+
+  revalidatePath("/admin/billing");
+  revalidatePath(`/admin/billing/invoices/${encodeURIComponent(invoiceNumber)}`);
+  revalidatePath("/portal/invoices");
   invoicePath(invoiceNumber, "sent", recipient);
 }
