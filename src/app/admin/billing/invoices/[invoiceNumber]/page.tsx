@@ -1,22 +1,37 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CreditCard, Download, FileText, ImageIcon } from "lucide-react";
+import { ArrowLeft, CreditCard, Download, FileText, ImageIcon, Send } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { requireStaff } from "@/lib/admin-account";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatBillingDate, formatMoney } from "@/lib/billing";
 import { InvoiceAttachmentUploader } from "../invoice-attachment-uploader";
+import { sendInvoiceEmail } from "../send-actions";
 
 export const metadata: Metadata = { title: "Invoice Admin" };
 
-export default async function AdminInvoicePage({ params }: { params: Promise<{ invoiceNumber: string }> }) {
-  const { invoiceNumber } = await params;
+const emailMessages: Record<string, string> = {
+  sent: "Invoice email sent successfully.",
+  failed: "Invoice email could not be sent. Check Resend domain verification and try again.",
+  "not-configured": "Invoice email is not configured in production yet. Resend API access is required.",
+  "missing-recipient": "This client needs a billing email before the invoice can be sent.",
+  "not-found": "The invoice could not be found for email delivery.",
+};
+
+export default async function AdminInvoicePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ invoiceNumber: string }>;
+  searchParams: Promise<{ email?: string; to?: string }>;
+}) {
+  const [{ invoiceNumber }, query] = await Promise.all([params, searchParams]);
   const { supabase } = await requireStaff();
 
   const { data: invoice } = await supabase.from("invoices")
-    .select("id, client_account_id, invoice_number, status, issue_date, due_date, subtotal, tax, total, amount_paid, amount_due, currency, notes, client_accounts(display_name)")
+    .select("id, client_account_id, invoice_number, status, issue_date, due_date, subtotal, tax, total, amount_paid, amount_due, currency, notes, client_accounts(display_name, billing_email, email)")
     .eq("invoice_number", invoiceNumber)
     .maybeSingle();
   if (!invoice) notFound();
@@ -33,12 +48,38 @@ export default async function AdminInvoicePage({ params }: { params: Promise<{ i
     return { ...item, signedUrl: data?.signedUrl ?? null };
   }));
 
-  const relation = invoice.client_accounts as { display_name: string } | { display_name: string }[] | null;
-  const clientName = Array.isArray(relation) ? relation[0]?.display_name : relation?.display_name;
+  const relation = invoice.client_accounts as {
+    display_name: string;
+    billing_email: string | null;
+    email: string | null;
+  } | {
+    display_name: string;
+    billing_email: string | null;
+    email: string | null;
+  }[] | null;
+  const account = Array.isArray(relation) ? relation[0] : relation;
+  const clientName = account?.display_name;
+  const recipient = account?.billing_email ?? account?.email ?? null;
+  const emailMessage = query.email ? emailMessages[query.email] : null;
 
   return <main className="mx-auto max-w-5xl px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
     <Link href="/admin/billing" className="mb-5 inline-flex min-h-10 items-center gap-2 text-xs font-semibold text-black/45 hover:text-black"><ArrowLeft className="size-4" />Billing</Link>
-    <AdminPageHeader eyebrow="Invoice record" title={invoice.invoice_number} description={clientName ?? "APRISM client"} actions={<div className="flex flex-wrap items-center gap-2"><a href={`/pay/${invoice.id}`} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 border border-black/15 bg-white px-3 text-xs font-semibold hover:border-black/35"><CreditCard className="size-4" />Client payment page</a><StatusBadge value={invoice.status} /></div>} />
+    <AdminPageHeader
+      eyebrow="Invoice record"
+      title={invoice.invoice_number}
+      description={clientName ?? "APRISM client"}
+      actions={<div className="flex flex-wrap items-center gap-2">
+        <form action={sendInvoiceEmail}>
+          <input type="hidden" name="invoiceNumber" value={invoice.invoice_number} />
+          <button type="submit" disabled={!recipient} className="inline-flex min-h-10 items-center gap-2 bg-[#171b19] px-3 text-xs font-semibold text-white hover:bg-black disabled:cursor-not-allowed disabled:opacity-40"><Send className="size-4" />Send Invoice</button>
+        </form>
+        <a href={`/pay/${invoice.id}`} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 border border-black/15 bg-white px-3 text-xs font-semibold hover:border-black/35"><CreditCard className="size-4" />Client payment page</a>
+        <StatusBadge value={invoice.status} />
+      </div>}
+    />
+
+    {emailMessage ? <div className={`mt-5 border px-4 py-3 text-sm ${query.email === "sent" ? "border-emerald-700/20 bg-emerald-50 text-emerald-900" : "border-amber-700/20 bg-amber-50 text-amber-900"}`} role="status">{emailMessage}{query.email === "sent" && query.to ? ` Sent to ${query.to}.` : ""}</div> : null}
+    {!recipient ? <div className="mt-5 border border-amber-700/20 bg-amber-50 px-4 py-3 text-sm text-amber-900">Add a billing email to this client before sending invoices.</div> : null}
 
     <section className="mt-6 grid gap-4 sm:grid-cols-4">
       <Metric label="Issued" value={formatBillingDate(invoice.issue_date)} />
