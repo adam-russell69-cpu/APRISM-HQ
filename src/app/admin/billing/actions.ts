@@ -40,7 +40,7 @@ export async function createInvoice(formData: FormData) {
   const { data: invoice, error: invoiceError } = await supabase.from("invoices").insert({
     client_account_id: accountId,
     invoice_number: invoiceNumber,
-    status: "sent",
+    status: "draft",
     issue_date: issueDate,
     due_date: dueDate,
     payment_terms_days: account.payment_terms_days,
@@ -82,5 +82,5 @@ export async function createInvoice(formData: FormData) {
   revalidatePath("/admin/billing");
   revalidatePath(`/admin/clients/${accountId}`);
   revalidatePath("/portal/invoices");
-  redirect(`/portal/invoices/${encodeURIComponent(invoiceNumber)}`);
+  redirect(`/admin/billing/invoices/${encodeURIComponent(invoiceNumber)}`);
 }
