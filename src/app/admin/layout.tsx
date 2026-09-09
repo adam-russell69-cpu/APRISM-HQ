@@ -5,6 +5,12 @@ import { requireStaff } from "@/lib/admin-account";
 export const metadata: Metadata = {
   title: "Operations",
   description: "Private APRISM operations console.",
+  manifest: "/admin-manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "APRISM Admin",
+    statusBarStyle: "black-translucent",
+  },
   robots: { index: false, follow: false },
 };
 
