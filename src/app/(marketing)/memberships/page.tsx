@@ -14,6 +14,8 @@ const serviceRates = [
 export const metadata: Metadata = {
   title: "Property Stewardship Memberships",
   description: "APRISM membership options for proactive home care, home watch, estate stewardship, and private-client property oversight in Park City.",
+  alternates: { canonical: "/memberships" },
+  openGraph: { url: "/memberships" },
 };
 
 export default function MembershipsPage() {
