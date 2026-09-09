@@ -75,6 +75,7 @@ export async function createPublicInvoiceCheckout(formData: FormData) {
   const account = Array.isArray(relation) ? relation[0] : relation;
   if (!account) paymentRedirect(invoiceId, "unavailable");
 
+  let checkoutUrl: string;
   try {
     let customerId = invoice.stripe_customer_id ?? account.stripe_customer_id;
     if (customerId) {
@@ -88,7 +89,8 @@ export async function createPublicInvoiceCheckout(formData: FormData) {
         metadata: { aprism_client_account_id: account.id, aprism_account_type: account.account_type },
       }, { idempotencyKey: `aprism:customer:${account.id}` });
       customerId = customer.id;
-      await admin.from("client_accounts").update({ stripe_customer_id: customerId }).eq("id", account.id);
+      const { error: customerUpdateError } = await admin.from("client_accounts").update({ stripe_customer_id: customerId }).eq("id", account.id);
+      if (customerUpdateError) throw customerUpdateError;
     }
 
     const amount = amountToMinorUnits(invoice.amount_due, invoice.currency);
@@ -124,7 +126,7 @@ export async function createPublicInvoiceCheckout(formData: FormData) {
       stripe_checkout_session_id: session.id,
     }).eq("id", invoice.id);
     if (updateError) throw updateError;
-    redirect(session.url);
+    checkoutUrl = session.url;
   } catch (checkoutError) {
     console.error("[public-invoice-checkout] Hosted Checkout creation failed", {
       invoiceId,
@@ -133,4 +135,6 @@ export async function createPublicInvoiceCheckout(formData: FormData) {
     });
     paymentRedirect(invoiceId, "unavailable");
   }
+
+  redirect(checkoutUrl);
 }
