@@ -6,6 +6,8 @@ import { PageHero } from "@/components/marketing/page-hero";
 export const metadata: Metadata = {
   title: "Request a Property Assessment",
   description: "Request a private property assessment for estate management, home watch, preventive maintenance, or luxury home stewardship in Park City and Summit County.",
+  alternates: { canonical: "/contact" },
+  openGraph: { url: "/contact" },
 };
 
 export default function ContactPage() {
