@@ -51,7 +51,7 @@ export default async function ClientDetailPage({ params, searchParams }: { param
 
   return <main className="mx-auto max-w-[1500px] px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
     <Link href="/admin/clients?view=clients" className="mb-5 inline-flex min-h-10 items-center gap-2 text-xs font-semibold text-black/45 hover:text-black"><ChevronLeft aria-hidden="true" className="size-4" />All clients</Link>
-    <AdminPageHeader eyebrow={`${account.account_type} client`} title={account.display_name} description={`Relationship since ${date.format(new Date(account.created_at))}`} actions={<StatusBadge value={account.status} />} />
+    <AdminPageHeader eyebrow={`${account.account_type} client`} title={account.display_name} description={`Relationship since ${date.format(new Date(account.created_at))}`} actions={<div className="flex items-center gap-3"><Link href={`/admin/clients/${account.id}/invoices/new`} className="inline-flex min-h-10 items-center bg-[#171a19] px-4 text-xs font-semibold text-white">New Invoice</Link><StatusBadge value={account.status} /></div>} />
     <div className="mt-5"><Message error={message.error} notice={message.notice} /></div>
 
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Client account metrics">
