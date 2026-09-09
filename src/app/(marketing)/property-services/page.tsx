@@ -4,7 +4,12 @@ import { serviceBySlug } from "@/lib/marketing";
 
 const service = serviceBySlug["property-services"];
 
-export const metadata: Metadata = { title: service.seoTitle, description: service.seoDescription };
+export const metadata: Metadata = {
+  title: service.seoTitle,
+  description: service.seoDescription,
+  alternates: { canonical: "/property-services" },
+  openGraph: { url: "/property-services" },
+};
 
 export default function PropertyServicesPage() {
   return <ServicePage service={service} />;
