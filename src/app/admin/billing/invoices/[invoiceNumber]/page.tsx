@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Download, FileText, ImageIcon } from "lucide-react";
+import { ArrowLeft, CreditCard, Download, FileText, ImageIcon } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { requireStaff } from "@/lib/admin-account";
@@ -38,7 +38,7 @@ export default async function AdminInvoicePage({ params }: { params: Promise<{ i
 
   return <main className="mx-auto max-w-5xl px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
     <Link href="/admin/billing" className="mb-5 inline-flex min-h-10 items-center gap-2 text-xs font-semibold text-black/45 hover:text-black"><ArrowLeft className="size-4" />Billing</Link>
-    <AdminPageHeader eyebrow="Invoice record" title={invoice.invoice_number} description={clientName ?? "APRISM client"} actions={<StatusBadge value={invoice.status} />} />
+    <AdminPageHeader eyebrow="Invoice record" title={invoice.invoice_number} description={clientName ?? "APRISM client"} actions={<div className="flex flex-wrap items-center gap-2"><a href={`/pay/${invoice.id}`} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 border border-black/15 bg-white px-3 text-xs font-semibold hover:border-black/35"><CreditCard className="size-4" />Client payment page</a><StatusBadge value={invoice.status} /></div>} />
 
     <section className="mt-6 grid gap-4 sm:grid-cols-4">
       <Metric label="Issued" value={formatBillingDate(invoice.issue_date)} />
