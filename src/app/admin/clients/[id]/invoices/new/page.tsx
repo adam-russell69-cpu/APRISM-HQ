@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { requireStaff } from "@/lib/admin-account";
-import { createInvoice } from "../../actions";
+import { createInvoice } from "@/app/admin/billing/actions";
 
 export const metadata: Metadata = { title: "New Invoice" };
 const input = "mt-2 min-h-11 w-full border border-black/15 bg-white px-3.5 text-sm outline-none focus:border-[#8f713d]";
