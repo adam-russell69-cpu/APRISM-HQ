@@ -5,6 +5,8 @@ import { PageHero } from "@/components/marketing/page-hero";
 export const metadata: Metadata = {
   title: "About APRISM",
   description: "APRISM is a Park City luxury asset stewardship company built around continuity, documentation, preventive care, and accountable coordination.",
+  alternates: { canonical: "/about" },
+  openGraph: { url: "/about" },
 };
 
 const principles = [
