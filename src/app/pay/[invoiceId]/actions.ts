@@ -79,8 +79,17 @@ export async function createPublicInvoiceCheckout(formData: FormData) {
   try {
     let customerId = invoice.stripe_customer_id ?? account.stripe_customer_id;
     if (customerId) {
-      const customer = await stripe.customers.retrieve(customerId);
-      if (customer.deleted) customerId = null;
+      try {
+        const customer = await stripe.customers.retrieve(customerId);
+        if (customer.deleted) customerId = null;
+      } catch (customerLookupError) {
+        const stripeError = customerLookupError as Stripe.errors.StripeError;
+        if (stripeError?.code === "resource_missing" && stripeError?.param === "id") {
+          customerId = null;
+        } else {
+          throw customerLookupError;
+        }
+      }
     }
     if (!customerId) {
       const customer = await stripe.customers.create({
