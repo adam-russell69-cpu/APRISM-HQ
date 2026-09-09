@@ -141,35 +141,82 @@ export async function inviteClientAccountMember(formData: FormData) {
     redirect(clientErrorPath(accountId, "Client invitations are not configured on the server."));
   }
 
-  const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${origin}/auth/invite`,
-    data: fullName ? { full_name: fullName } : undefined,
-  });
-  const userId = invited.user?.id;
-  if (inviteError || !userId) {
-    console.error("APRISM client invitation failed", { code: inviteError?.code ?? "missing_invited_user_id" });
-    redirect(clientErrorPath(accountId, inviteError?.status === 422
-      ? "That email already has an Auth account. Add the existing Auth user instead."
-      : "The invitation could not be sent. No portal membership was added."));
+  const { data: usersPage, error: userLookupError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  if (userLookupError) {
+    console.error("APRISM Auth user lookup failed", { code: userLookupError.code ?? "auth_user_lookup_failed" });
+    redirect(clientErrorPath(accountId, "Portal users could not be checked. No invitation was sent."));
   }
 
-  const { error: membershipError } = await admin.from("client_account_members").insert({
+  const existingUser = usersPage.users.find((user) => user.email?.toLowerCase() === email);
+  let userId = existingUser?.id ?? null;
+  let invitationSent = false;
+
+  if (userId) {
+    const { data: existingMembership, error: membershipLookupError } = await admin.from("client_account_members")
+      .select("id, role, active")
+      .eq("client_account_id", accountId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (membershipLookupError) {
+      console.error("APRISM membership lookup failed", { code: membershipLookupError.code });
+      redirect(clientErrorPath(accountId, "Existing portal access could not be checked."));
+    }
+
+    if (existingMembership) {
+      const { error: updateError } = await admin.from("client_account_members")
+        .update({ role, active: true })
+        .eq("id", existingMembership.id);
+
+      if (updateError) {
+        console.error("APRISM existing membership update failed", { code: updateError.code });
+        redirect(clientErrorPath(accountId, "Existing portal access could not be updated."));
+      }
+
+      revalidatePath(`/admin/clients/${accountId}`);
+      revalidatePath("/portal/business");
+      redirect(`/admin/clients/${accountId}?notice=${actionMessage(`Existing portal access for ${email} is ${role} — active. No duplicate invitation was sent.`)}`);
+    }
+  } else {
+    const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
+      redirectTo: `${origin}/auth/invite`,
+      data: fullName ? { full_name: fullName } : undefined,
+    });
+    userId = invited.user?.id ?? null;
+    if (inviteError || !userId) {
+      console.error("APRISM client invitation failed", { code: inviteError?.code ?? "missing_invited_user_id" });
+      const rateLimited = inviteError?.code === "over_email_send_rate_limit" || inviteError?.status === 429;
+      redirect(clientErrorPath(accountId, rateLimited
+        ? "Invitation email is temporarily rate-limited. Do not keep retrying; the client account and billing workflow still work without portal access."
+        : "The invitation could not be sent. No portal membership was added."));
+    }
+    invitationSent = true;
+  }
+
+  if (!userId) redirect(clientErrorPath(accountId, "Portal access could not be provisioned."));
+
+  const { error: membershipError } = await admin.from("client_account_members").upsert({
     client_account_id: accountId,
     user_id: userId,
     role,
     active: true,
+  }, {
+    onConflict: "client_account_id,user_id",
+    ignoreDuplicates: false,
   });
 
   if (membershipError) {
     console.error("APRISM invited membership create failed", { code: membershipError.code });
-    const { error: rollbackError } = await admin.auth.admin.deleteUser(userId);
-    if (rollbackError) console.error("APRISM invited Auth user rollback failed", { code: rollbackError.code });
-    redirect(clientErrorPath(accountId, "The invitation was cancelled because account access could not be provisioned."));
+    redirect(clientErrorPath(accountId, invitationSent
+      ? "The Auth invitation was created, but account access could not be linked. Retry after checking the membership record; do not resend the invitation repeatedly."
+      : "The existing Auth user could not be linked to this client account."));
   }
 
   revalidatePath(`/admin/clients/${accountId}`);
   revalidatePath("/portal/business");
-  redirect(`/admin/clients/${accountId}?notice=${actionMessage(`Invitation sent to ${email}. Membership is ${role} — active.`)}`);
+  redirect(`/admin/clients/${accountId}?notice=${actionMessage(invitationSent
+    ? `Invitation sent to ${email}. Membership is ${role} — active.`
+    : `Existing Auth user ${email} linked as ${role} — active. No duplicate invitation was sent.`)}`);
 }
 
 export async function addClientAccountMember(formData: FormData) {
