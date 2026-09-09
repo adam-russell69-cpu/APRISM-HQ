@@ -5,6 +5,8 @@ import { PageHero } from "@/components/marketing/page-hero";
 export const metadata: Metadata = {
   title: "Website Terms",
   description: "Terms governing use of the APRISM LLC website and client portal.",
+  alternates: { canonical: "/terms" },
+  openGraph: { url: "/terms" },
 };
 
 const sections = [
