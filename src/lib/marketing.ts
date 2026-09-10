@@ -6,6 +6,10 @@ export type Service = {
   promise: string;
   services: string[];
   outcomes: { title: string; copy: string }[];
+  localTitle?: string;
+  localCopy?: string[];
+  idealFor?: string[];
+  relatedLinks?: { href: string; label: string }[];
   seoTitle: string;
   seoDescription: string;
 };
@@ -33,9 +37,26 @@ export const services: Service[] = [
       { title: "Foresight", copy: "Planned attention before weather, wear, or vacancy creates urgency." },
       { title: "Accountability", copy: "A clear owner for follow-through across technicians and vendors." },
     ],
-    seoTitle: "Summit County Property Maintenance",
+    localTitle: "Property maintenance built for Park City and the Wasatch Back.",
+    localCopy: [
+      "Mountain homes ask more of their systems. Freeze cycles, snow load, seasonal vacancy, dry air, irrigation, mechanical rooms, exterior assemblies, and changing temperatures can turn a small maintenance item into an expensive interruption. APRISM Property Services gives owners a local point of accountability for preventive property maintenance across Park City, Deer Valley, Promontory, Summit County, and select Wasatch Back communities.",
+      "Our work is centered on continuity rather than one-off repair calls. We document conditions, track recurring maintenance, troubleshoot minor issues, coordinate qualified vendors when a specialist is needed, and keep the owner informed about what was found, what was completed, and what should happen next. That makes the property easier to own whether it is a primary residence, a second home, or part of a larger private estate.",
+      "APRISM can also support seasonal opening and closing, arrival readiness, post-storm observations, minor repairs, contractor access, and follow-through after larger service visits. The goal is simple: fewer surprises, clearer records, and a home that is ready when you are.",
+    ],
+    idealFor: [
+      "Primary and second homes needing proactive maintenance",
+      "Owners who want one local contact for recurring property details",
+      "Homes with multiple vendors, systems, and seasonal service needs",
+      "Property managers seeking dependable field support and documentation",
+    ],
+    relatedLinks: [
+      { href: "/home-watch", label: "Explore Home Watch" },
+      { href: "/estate-management", label: "Explore Estate Management" },
+      { href: "/memberships", label: "View Stewardship Memberships" },
+    ],
+    seoTitle: "Summit County Property Maintenance | APRISM",
     seoDescription:
-      "Preventive property maintenance, troubleshooting, seasonal preparation, and vendor coordination for homes in Park City, Deer Valley, and Promontory.",
+      "Preventive property maintenance, minor repairs, seasonal preparation, reporting, and vendor coordination for Park City, Deer Valley, Promontory, and the Wasatch Back.",
   },
   {
     slug: "estate-management",
@@ -60,9 +81,26 @@ export const services: Service[] = [
       { title: "One strategy", copy: "Maintenance decisions guided by condition, priority, and long-term value." },
       { title: "One record", copy: "Inspections, documents, systems, vendors, and work history kept together." },
     ],
-    seoTitle: "Park City Estate Management",
+    localTitle: "Private estate management with local accountability.",
+    localCopy: [
+      "APRISM Estate Management is designed for Park City and Wasatch Back owners who need more than periodic maintenance. Complex homes often involve specialty mechanical systems, snow and landscape contractors, security, smart-home technology, housekeeping, builders, service technicians, and seasonal preparation. Without a single steward, responsibility can become fragmented between vendors.",
+      "APRISM provides a consistent local relationship that connects those moving parts. We schedule documented inspections, maintain the operating record, coordinate vendors, oversee approved projects, prepare the home for arrivals and departures, and help organize a response when an urgent condition develops. Owners receive a clearer picture of the property rather than a collection of disconnected service calls.",
+      "For second-home and private-estate owners, this continuity matters most while the residence is unoccupied. A known local steward can notice changing conditions, confirm work was completed, maintain access information, and help prevent small issues from disappearing into the gaps between contractors. The result is practical estate stewardship focused on readiness, preservation, and long-term confidence in the home.",
+    ],
+    idealFor: [
+      "Luxury second homes with multiple service providers",
+      "Private estates requiring documented local oversight",
+      "Owners who travel frequently or live outside Utah",
+      "Homes needing coordinated arrivals, departures, projects, and maintenance",
+    ],
+    relatedLinks: [
+      { href: "/home-watch", label: "Add Documented Home Watch" },
+      { href: "/new-home-stewardship", label: "New Home Stewardship" },
+      { href: "/memberships", label: "Compare Memberships" },
+    ],
+    seoTitle: "Park City Estate Management | APRISM",
     seoDescription:
-      "Private estate management for luxury homes in Park City and the Wasatch Back, including inspections, projects, arrivals, vendors, and emergency coordination.",
+      "Private estate management for Park City and Wasatch Back homes, including inspections, preventive maintenance, projects, arrivals, vendors, documentation, and emergency coordination.",
   },
   {
     slug: "home-watch",
@@ -84,9 +122,26 @@ export const services: Service[] = [
       { title: "Mountain-aware", copy: "Focused review of the conditions most likely to affect an unoccupied home." },
       { title: "Clear escalation", copy: "Prompt communication and coordinated action when a condition changes." },
     ],
-    seoTitle: "Park City Home Watch",
+    localTitle: "Home watch for Park City second homes and mountain properties.",
+    localCopy: [
+      "An unoccupied mountain home can change quickly. Winter temperatures, snow, plumbing, HVAC performance, leaks, power interruptions, wind, exterior damage, and contractor activity all create conditions that are easy to miss from another state or another country. APRISM Home Watch provides scheduled, documented visual inspections for second homes in Park City, Deer Valley, Promontory, Summit County, and nearby Wasatch Back communities.",
+      "A home watch visit is not a substitute for a licensed trade inspection. It is a consistent set of eyes on the property. We visually review accessible interior and exterior areas, note obvious changes, observe temperature and mechanical conditions, look for signs of water intrusion or freeze risk, and provide photo-supported reporting. When something needs attention, we communicate the condition and help coordinate the appropriate next step.",
+      "Home Watch can operate as a stand-alone service or as part of a broader APRISM stewardship relationship. For owners who use the home seasonally, it can also connect naturally with arrival preparation, departure procedures, preventive maintenance, and vendor coordination so the residence remains cared for between visits.",
+    ],
+    idealFor: [
+      "Second homes vacant for weeks or months at a time",
+      "Park City owners living outside Utah",
+      "Properties exposed to snow, freeze, storm, or leak risk",
+      "Owners wanting documented visits and photo reporting",
+    ],
+    relatedLinks: [
+      { href: "/property-services", label: "Add Property Maintenance" },
+      { href: "/estate-management", label: "Explore Estate Management" },
+      { href: "/contact", label: "Request a Property Assessment" },
+    ],
+    seoTitle: "Park City Home Watch & Second Home Care | APRISM",
     seoDescription:
-      "Documented home watch inspections for second homes in Park City, Deer Valley, and Summit County, with photo reporting and weather-risk observations.",
+      "Documented home watch for second homes in Park City, Deer Valley, Promontory, and Summit County, with photo reporting, weather-risk observations, and local coordination.",
   },
   {
     slug: "new-home-stewardship",
@@ -110,16 +165,33 @@ export const services: Service[] = [
       { title: "Warranty awareness", copy: "Key dates and documentation kept visible before coverage expires." },
       { title: "First-year clarity", copy: "Recurring reviews while the home and its systems settle into use." },
     ],
-    seoTitle: "New Luxury Home Stewardship Park City",
+    localTitle: "A structured handoff for new Park City and Wasatch Back homes.",
+    localCopy: [
+      "The first year of owning a new or newly purchased mountain home is when important information can disappear fastest. Builder contacts, subcontractors, equipment manuals, model and serial numbers, finish schedules, warranty dates, smart-home details, maintenance requirements, and seasonal procedures may be scattered across emails, binders, and different vendors.",
+      "APRISM New Home Stewardship organizes that information into a usable property record. We inventory major equipment, capture documentation, record builder and vendor relationships, identify recurring maintenance needs, photograph key systems and conditions, and establish a practical calendar for the first year of ownership. That record becomes the foundation for future preventive maintenance and estate care.",
+      "For new construction in Park City, Deer Valley, Promontory, Summit County, and the Wasatch Back, early documentation also helps owners distinguish warranty follow-up from routine maintenance. APRISM can help track open items, coordinate access, document observable changes, and preserve continuity after the builder handoff is complete.",
+    ],
+    idealFor: [
+      "Recently completed custom homes",
+      "Newly purchased second homes with unfamiliar systems",
+      "Owners transitioning away from builder-led coordination",
+      "Properties that need a clean maintenance and warranty record from day one",
+    ],
+    relatedLinks: [
+      { href: "/estate-management", label: "Continue with Estate Management" },
+      { href: "/property-services", label: "Build a Maintenance Plan" },
+      { href: "/contact", label: "Request a Property Assessment" },
+    ],
+    seoTitle: "New Home Stewardship Park City | APRISM",
     seoDescription:
-      "New-home onboarding, equipment inventory, warranty tracking, and first-year stewardship for luxury residences in Park City and Summit County.",
+      "New-home onboarding, equipment inventory, warranty tracking, maintenance planning, and first-year stewardship for Park City and Summit County residences.",
   },
   {
     slug: "moto",
     eyebrow: "APRISM Moto",
     title: "Stewardship for the collection beyond the garage door.",
     intro:
-      "Informed support for motorcycle acquisition, documentation, maintenance planning, and transport—built for owners who value provenance and readiness.",
+      "Informed support for motorcycle acquisition, documentation, maintenance planning, and transport, built for owners who value provenance and readiness.",
     promise:
       "The same disciplined care APRISM brings to a residence, applied to specialty assets with distinct histories, requirements, and meaning.",
     services: [
