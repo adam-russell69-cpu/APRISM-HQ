@@ -64,6 +64,41 @@ export function ServicePage({ service, editorialMedia }: ServicePageProps) {
           </ul>
         </div>
       </section>
+
+      {service.localTitle && service.localCopy ? (
+        <section className="border-t border-black/10 bg-[#f7f5ee] py-20 text-[#171a19] sm:py-28">
+          <div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:px-12">
+            <div>
+              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-[#8f713d]">Local stewardship</p>
+              <h2 className="mt-5 max-w-md font-serif text-4xl leading-tight tracking-[-0.03em] sm:text-5xl">{service.localTitle}</h2>
+            </div>
+            <div className="space-y-6 text-base leading-8 text-black/62">
+              {service.localCopy.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {service.idealFor?.length ? (
+        <section className="bg-[#e6e2d7] py-16 text-[#171a19] sm:py-20">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
+            <div className="grid gap-10 lg:grid-cols-[0.65fr_1.35fr]">
+              <div>
+                <p className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-[#8f713d]">A strong fit for</p>
+                <h2 className="mt-4 font-serif text-4xl leading-tight">Homes that need continuity, not another disconnected service call.</h2>
+              </div>
+              <ul className="grid gap-px border border-black/10 bg-black/10 sm:grid-cols-2">
+                {service.idealFor.map((item) => (
+                  <li key={item} className="flex min-h-28 items-start gap-4 bg-[#efede6] p-6 text-sm leading-6 text-black/66">
+                    <Check aria-hidden="true" className="mt-1 size-4 shrink-0 text-[#8f713d]" />{item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <section className="border-y border-white/10 bg-[#111414] py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
           <div className="max-w-3xl">
@@ -79,6 +114,15 @@ export function ServicePage({ service, editorialMedia }: ServicePageProps) {
               </article>
             ))}
           </div>
+          {service.relatedLinks?.length ? (
+            <div className="mt-12 flex flex-wrap gap-3 border-t border-white/10 pt-8">
+              {service.relatedLinks.map((item) => (
+                <Link key={item.href} href={item.href} className="inline-flex min-h-11 items-center gap-2 border border-white/15 px-4 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white/72 transition hover:border-[#c7a76b] hover:text-[#c7a76b]">
+                  {item.label}<ArrowUpRight aria-hidden="true" className="size-3.5" />
+                </Link>
+              ))}
+            </div>
+          ) : null}
         </div>
       </section>
       <section className="bg-[#b99b62] py-16 text-[#101211] sm:py-20">
