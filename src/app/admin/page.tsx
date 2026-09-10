@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Building2, CheckCircle2, ClipboardCheck, MessageSquareText, Plus, TriangleAlert } from "lucide-react";
+import { ArrowRight, Building2, CheckCircle2, ClipboardCheck, DollarSign, MessageSquareText, Plus, ReceiptText, Target, TriangleAlert, Users } from "lucide-react";
 import { AdminPageHeader, adminPrimaryButton, adminSecondaryButton } from "@/components/admin/admin-page-header";
 import { EmptyState } from "@/components/admin/empty-state";
 import { StatusBadge, labelStatus } from "@/components/admin/status-badge";
@@ -7,6 +7,7 @@ import { requireStaff } from "@/lib/admin-account";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "America/Denver" });
 const shortDateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "America/Denver" });
+const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
 function getMountainGreeting(date: Date) {
   const hour = Number(new Intl.DateTimeFormat("en-US", { hour: "2-digit", hour12: false, timeZone: "America/Denver" }).format(date));
@@ -15,16 +16,27 @@ function getMountainGreeting(date: Date) {
   return "Good evening";
 }
 
+function percent(value: number, target: number) {
+  if (!target) return 0;
+  return Math.min(100, Math.round((value / target) * 100));
+}
+
 type IntakeData = { owner_name?: string; property_address?: string; property_name?: string; property_label?: string; client_name?: string };
 
 export default async function AdminPage() {
   const { supabase, account } = await requireStaff();
-  const [inquiryResult, propertyResult, requestResult, issueResult, assessmentResult] = await Promise.all([
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+
+  const [inquiryResult, propertyResult, requestResult, issueResult, assessmentResult, clientResult, invoiceResult, paymentResult] = await Promise.all([
     supabase.from("inquiries").select("id, name, property_location, status, created_at, updated_at").order("created_at", { ascending: false }).limit(30),
     supabase.from("properties").select("id, name, city, state, health_status, updated_at").order("updated_at", { ascending: false }).limit(30),
     supabase.from("service_requests").select("id, property_id, title, category, status, created_at, updated_at").order("updated_at", { ascending: false }).limit(30),
     supabase.from("issues").select("id, property_id, title, severity, status, created_at, updated_at").order("updated_at", { ascending: false }).limit(30),
     supabase.from("property_assessments").select("id, property_id, status, intake_data, assessment_date, created_at, updated_at").order("updated_at", { ascending: false }).limit(30),
+    supabase.from("client_accounts").select("id, status, recurring_active, expected_monthly_value"),
+    supabase.from("invoices").select("id, status, issue_date, total, amount_due").gte("issue_date", monthStart),
+    supabase.from("payments").select("id, status, amount, paid_at").eq("status", "succeeded").gte("paid_at", `${monthStart}T00:00:00`),
   ]);
 
   const inquiries = inquiryResult.data ?? [];
@@ -32,13 +44,29 @@ export default async function AdminPage() {
   const requests = requestResult.data ?? [];
   const issues = issueResult.data ?? [];
   const assessments = assessmentResult.data ?? [];
+  const clients = clientResult.data ?? [];
+  const invoices = invoiceResult.data ?? [];
+  const payments = paymentResult.data ?? [];
+
+  const activeClients = clients.filter((client) => client.status === "active");
+  const recurringClients = activeClients.filter((client) => client.recurring_active);
+  const expectedMrr = recurringClients.reduce((sum, client) => sum + Number(client.expected_monthly_value ?? 0), 0);
+  const monthlyInvoiced = invoices
+    .filter((invoice) => !["draft", "void", "cancelled"].includes(invoice.status))
+    .reduce((sum, invoice) => sum + Number(invoice.total ?? 0), 0);
+  const cashCollected = payments.reduce((sum, payment) => sum + Number(payment.amount ?? 0), 0);
+  const openAr = invoices
+    .filter((invoice) => !["draft", "void", "cancelled", "paid"].includes(invoice.status))
+    .reduce((sum, invoice) => sum + Number(invoice.amount_due ?? 0), 0);
+  const qualifiedLeads = inquiries.filter((inquiry) => inquiry.status === "qualified").length;
+  const completedAssessments = assessments.filter((assessment) => ["completed", "published"].includes(assessment.status)).length;
+
   const propertyNames = new Map(properties.map((property) => [property.id, property.name]));
   const activeRequests = requests.filter((request) => !["completed", "cancelled"].includes(request.status));
   const activeIssues = issues.filter((issue) => !["resolved", "closed"].includes(issue.status));
   const priorityIssues = activeIssues.filter((issue) => ["Critical", "Action Recommended"].includes(issue.severity));
   const inProgressAssessments = assessments.filter((assessment) => ["field_draft", "report_draft", "scheduled"].includes(assessment.status));
   const newIntakes = assessments.filter((assessment) => assessment.status === "intake_received");
-  const now = new Date();
 
   const attention = [
     ...newIntakes.map((assessment) => { const intake = assessment.intake_data as IntakeData; return { key: `assessment-${assessment.id}`, href: `/admin/assessments/${assessment.id}`, type: "New intake", title: intake.property_address || intake.property_name || "Property intake", detail: intake.owner_name || intake.client_name || "Client intake", status: "intake_received", date: assessment.created_at }; }),
@@ -55,10 +83,34 @@ export default async function AdminPage() {
     ...inquiries.map((item) => ({ key: `l-${item.id}`, href: "/admin/clients?view=leads", title: `Lead ${labelStatus(item.status)} · ${item.name}`, date: item.updated_at })),
   ].toSorted((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 8);
 
+  const clientProofPercent = percent(recurringClients.length, 5);
+  const revenueProofPercent = percent(monthlyInvoiced, 10000);
+  const mrrProofPercent = percent(expectedMrr, 5000);
+
   return <main className="mx-auto max-w-[1500px] px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
     <AdminPageHeader eyebrow="Private operations" title={`${getMountainGreeting(now)}, ${account.displayName.split(" ")[0]}`} description={`APRISM Operations · ${dateFormatter.format(now)}`} actions={<><Link href="/admin/assessments/new" className={adminPrimaryButton}><ClipboardCheck aria-hidden="true" className="size-4" />New Assessment</Link><Link href="/admin/properties/new" className={adminSecondaryButton}><Plus aria-hidden="true" className="size-4" />Add Property</Link></>} />
 
     <section className="mt-7 overflow-hidden border border-black/10 bg-[#171b19] text-white">
+      <div className="border-b border-white/10 px-5 py-5 sm:px-6">
+        <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[#d0b274]">APRISM Proof Mode</p><h2 className="mt-2 font-serif text-3xl">Build the operating proof</h2></div><Link href="/admin/clients?view=clients" className="text-xs font-semibold text-white/55 hover:text-white">Manage clients →</Link></div>
+      </div>
+      <div className="grid gap-px bg-white/10 lg:grid-cols-3">
+        {[{ label: "Recurring clients", value: `${recurringClients.length} / 5`, progress: clientProofPercent, note: "Proof gate: 3–5" }, { label: "Monthly invoiced", value: `${money.format(monthlyInvoiced)} / $10K`, progress: revenueProofPercent, note: "Current calendar month" }, { label: "Expected recurring revenue", value: `${money.format(expectedMrr)} / $5K`, progress: mrrProofPercent, note: "From marked recurring clients" }].map((metric) => <div key={metric.label} className="bg-[#171b19] px-5 py-5 sm:px-6"><div className="flex items-center justify-between gap-3"><p className="text-xs font-semibold text-white/55">{metric.label}</p><span className="text-xs text-[#d0b274]">{metric.progress}%</span></div><p className="mt-3 font-serif text-3xl">{metric.value}</p><div className="mt-4 h-1.5 overflow-hidden bg-white/10"><div className="h-full bg-[#c6a66a]" style={{ width: `${metric.progress}%` }} /></div><p className="mt-2 text-[0.7rem] text-white/35">{metric.note}</p></div>)}
+      </div>
+    </section>
+
+    <section aria-label="Business metrics" className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      {[
+        { href: "/admin/clients?view=clients", label: "Active clients", value: activeClients.length, icon: Users },
+        { href: "/admin/clients?view=leads", label: "Qualified leads", value: qualifiedLeads, icon: Target },
+        { href: "/admin/assessments", label: "Completed assessments", value: completedAssessments, icon: ClipboardCheck },
+        { href: "/admin/billing", label: "Open A/R", value: money.format(openAr), icon: ReceiptText },
+        { href: "/admin/billing", label: "Cash collected", value: money.format(cashCollected), icon: DollarSign },
+        { href: "/admin/clients?view=clients", label: "Expected MRR", value: money.format(expectedMrr), icon: DollarSign },
+      ].map(({ href, label, value, icon: Icon }) => <Link key={label} href={href} className="group border border-black/10 bg-white p-4 transition hover:border-[#a8864e]/55"><div className="flex items-start justify-between"><Icon aria-hidden="true" className="size-4 text-[#8c6d36]" /><ArrowRight aria-hidden="true" className="size-3.5 text-black/20 transition group-hover:translate-x-0.5 group-hover:text-black/50" /></div><p className="mt-5 font-serif text-3xl">{value}</p><p className="mt-2 text-xs text-black/48">{label}</p></Link>)}
+    </section>
+
+    <section className="mt-6 overflow-hidden border border-black/10 bg-[#171b19] text-white">
       <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 sm:px-6"><div><p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[#d0b274]">Needs attention</p><h2 className="mt-2 font-serif text-3xl">Operational queue</h2></div><span className="text-sm text-white/35">{attention.length} active</span></div>
       {attention.length ? <div className="divide-y divide-white/10">{attention.map((item) => <Link key={item.key} href={item.href} className="grid gap-3 px-5 py-4 transition hover:bg-white/[0.045] sm:grid-cols-[0.75fr_1.5fr_0.8fr_auto] sm:items-center sm:px-6"><p className="text-xs font-semibold text-[#d0b274]">{item.type}</p><div><p className="text-sm font-medium text-white/88">{item.title}</p><p className="mt-1 text-xs text-white/38">{item.detail}</p></div><StatusBadge value={item.status} className="border-white/15 bg-white/[0.04] text-white/65" /><div className="flex items-center gap-3 text-xs text-white/35"><span>{shortDateFormatter.format(new Date(item.date))}</span><ArrowRight aria-hidden="true" className="size-4" /></div></Link>)}</div> : <div className="flex min-h-36 items-center gap-4 px-6"><CheckCircle2 aria-hidden="true" className="size-8 text-[#c7a76b]" /><div><p className="font-serif text-2xl">Everything current.</p><p className="mt-1 text-sm text-white/42">No new intakes, priority issues, or unfinished assessment steps.</p></div></div>}
     </section>
