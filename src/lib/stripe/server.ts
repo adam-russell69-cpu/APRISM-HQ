@@ -23,7 +23,7 @@ export async function assertExpectedStripeAccount(stripe: Stripe) {
   const expectedAccountId = process.env.STRIPE_EXPECTED_ACCOUNT_ID?.trim() || DEFAULT_EXPECTED_STRIPE_ACCOUNT_ID;
   if (verifiedStripeAccountId === expectedAccountId) return;
 
-  const account = await stripe.accounts.retrieve();
+  const account = await stripe.accounts.retrieve(expectedAccountId);
   if (account.id !== expectedAccountId) {
     throw new Error(`[stripe-account-guard] Refusing payment operation: configured Stripe account ${account.id} does not match expected APRISM account ${expectedAccountId}`);
   }
