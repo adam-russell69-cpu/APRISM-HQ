@@ -4,7 +4,7 @@ import { ArrowUpRight, Check } from "lucide-react";
 import { PageHero } from "@/components/marketing/page-hero";
 
 export const metadata: Metadata = {
-  title: "Park City & Wasatch Back Service Area | APRISM",
+  title: { absolute: "Park City & Wasatch Back Service Area | APRISM" },
   description: "APRISM provides home watch, property maintenance, and estate stewardship across Park City, Deer Valley, Promontory, Heber, Midway, Kamas, and select Wasatch Back communities.",
   alternates: { canonical: "/service-area" },
   openGraph: { url: "/service-area" },
