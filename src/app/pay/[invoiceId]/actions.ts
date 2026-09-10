@@ -103,7 +103,6 @@ export async function createPublicInvoiceCheckout(formData: FormData) {
     }
 
     const amount = amountToMinorUnits(invoice.amount_due, invoice.currency);
-    const paymentMethodTypes: Stripe.Checkout.SessionCreateParams.PaymentMethodType[] = method === "ach" ? ["us_bank_account"] : ["card"];
     const metadata = {
       aprism_invoice_id: invoice.id,
       aprism_invoice_number: invoice.invoice_number,
@@ -113,7 +112,8 @@ export async function createPublicInvoiceCheckout(formData: FormData) {
       mode: "payment",
       customer: customerId,
       client_reference_id: invoice.id,
-      payment_method_types: paymentMethodTypes,
+      managed_payments: { enabled: false },
+      payment_method_types: method === "ach" ? ["us_bank_account"] : ["card"],
       billing_address_collection: "required",
       line_items: [{
         quantity: 1,
