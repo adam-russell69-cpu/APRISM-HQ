@@ -5,7 +5,7 @@ import { serviceBySlug } from "@/lib/marketing";
 const service = serviceBySlug["estate-management"];
 
 export const metadata: Metadata = {
-  title: service.seoTitle,
+  title: { absolute: service.seoTitle },
   description: service.seoDescription,
   alternates: { canonical: "/estate-management" },
   openGraph: { url: "/estate-management" },
