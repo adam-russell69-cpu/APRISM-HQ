@@ -127,7 +127,7 @@ export async function createPublicInvoiceCheckout(formData: FormData) {
       payment_intent_data: { description: `APRISM invoice ${invoice.invoice_number}`, metadata },
       success_url: `${origin}/pay/${invoice.id}?payment=processing`,
       cancel_url: `${origin}/pay/${invoice.id}?payment=cancelled`,
-    }, { idempotencyKey: `aprism:public-checkout:${invoice.id}:${method}:${amount}` });
+    }, { idempotencyKey: `aprism:public-checkout:v2:${invoice.id}:${method}:${amount}` });
 
     if (!session.url) throw new Error("Stripe Checkout did not return a hosted URL");
     const { error: updateError } = await admin.from("invoices").update({
