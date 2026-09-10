@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import type Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getStripe } from "@/lib/stripe/server";
+import { assertExpectedStripeAccount, getStripe } from "@/lib/stripe/server";
 
 type CheckoutMethod = "ach" | "card";
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -77,6 +77,8 @@ export async function createPublicInvoiceCheckout(formData: FormData) {
 
   let checkoutUrl: string;
   try {
+    await assertExpectedStripeAccount(stripe);
+
     let customerId = invoice.stripe_customer_id ?? account.stripe_customer_id;
     if (customerId) {
       try {
@@ -84,7 +86,7 @@ export async function createPublicInvoiceCheckout(formData: FormData) {
         if (customer.deleted) customerId = null;
       } catch (customerLookupError) {
         const stripeError = customerLookupError as Stripe.errors.StripeError;
-        if (stripeError?.code === "resource_missing" && stripeError?.param === "id") {
+        if (stripeError?.code === "resource_missing") {
           customerId = null;
         } else {
           throw customerLookupError;
@@ -127,7 +129,7 @@ export async function createPublicInvoiceCheckout(formData: FormData) {
       payment_intent_data: { description: `APRISM invoice ${invoice.invoice_number}`, metadata },
       success_url: `${origin}/pay/${invoice.id}?payment=processing`,
       cancel_url: `${origin}/pay/${invoice.id}?payment=cancelled`,
-    }, { idempotencyKey: `aprism:public-checkout:v2:${invoice.id}:${method}:${amount}` });
+    }, { idempotencyKey: `aprism:public-checkout:v3:${invoice.id}:${method}:${amount}` });
 
     if (!session.url) throw new Error("Stripe Checkout did not return a hosted URL");
     const { error: updateError } = await admin.from("invoices").update({
