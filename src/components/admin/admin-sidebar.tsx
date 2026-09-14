@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, ClipboardCheck, CreditCard, FileText, Gauge, Handshake, LogOut, MessageSquareText, Settings, TriangleAlert, Users, Wrench } from "lucide-react";
+import { Building2, ClipboardCheck, CreditCard, FileText, Gauge, Handshake, Landmark, LogOut, MessageSquareText, Settings, TriangleAlert, Users, Wrench } from "lucide-react";
 import { adminSignOut } from "@/app/admin/actions";
 import type { StaffAccount } from "@/lib/admin-account";
 
 const navigation = [
   { href: "/admin", label: "Dashboard", icon: Gauge, exact: true },
+  { href: "/admin/working-capital", label: "Working Capital", icon: Landmark },
   { href: "/admin/assessments", label: "Assessments", icon: ClipboardCheck },
   { href: "/admin/properties", label: "Properties", icon: Building2 },
   { href: "/admin/clients", label: "Clients & Leads", icon: Users },
