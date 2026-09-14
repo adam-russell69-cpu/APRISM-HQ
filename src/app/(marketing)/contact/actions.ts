@@ -11,6 +11,67 @@ const allowedServices = new Set(["Property Assessment"]);
 const allowedContactMethods = new Set(["Email", "Phone", "Text message"]);
 function value(formData: FormData, field: string) { return String(formData.get(field) ?? "").trim(); }
 
+async function notifyAprismOfInquiry(inquiry: {
+  name: string;
+  email: string;
+  phone: string;
+  property_location: string;
+  property_type: string;
+  residency: string;
+  home_size: string;
+  preferred_contact_method: string;
+  preferred_time: string | null;
+  message: string;
+}) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error("APRISM inquiry alert skipped", { reason: "RESEND_API_KEY missing" });
+    return;
+  }
+
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://aprismhq.com").replace(/\/$/, "");
+  const text = [
+    "New $295 Property Assessment request",
+    "",
+    `Name: ${inquiry.name}`,
+    `Email: ${inquiry.email}`,
+    `Phone: ${inquiry.phone}`,
+    `Property: ${inquiry.property_location}`,
+    `Property type: ${inquiry.property_type}`,
+    `Residence use: ${inquiry.residency}`,
+    `Home size: ${inquiry.home_size}`,
+    `Preferred contact: ${inquiry.preferred_contact_method}`,
+    `Best time: ${inquiry.preferred_time || "Not specified"}`,
+    "",
+    "Client notes:",
+    inquiry.message,
+    "",
+    `Open APRISM HQ: ${siteUrl}/admin/clients`,
+  ].join("\n");
+
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "APRISM HQ <admin@aprismhq.com>",
+        to: ["admin@aprismhq.com"],
+        subject: `New $295 Property Assessment: ${inquiry.name}`,
+        text,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("APRISM inquiry alert failed", { status: response.status });
+    }
+  } catch {
+    console.error("APRISM inquiry alert failed", { status: "network_error" });
+  }
+}
+
 export async function submitInquiry(_previousState: InquiryState, formData: FormData): Promise<InquiryState> {
   if (value(formData, "companyWebsite")) return { status: "success", message: "Thank you. Your request has been received." };
   const inquiry = {
@@ -29,5 +90,8 @@ export async function submitInquiry(_previousState: InquiryState, formData: Form
   if (!supabase) return { status: "error", message: "We could not receive your request right now. Please try again shortly." };
   const { error } = await supabase.from("inquiries").insert(inquiry);
   if (error) { console.error("APRISM inquiry submission failed", { code: error.code }); return { status: "error", message: "We could not receive your request right now. Please try again shortly." }; }
+
+  await notifyAprismOfInquiry(inquiry);
+
   return { status: "success", message: "Thank you. Your $295 Property Assessment request has been received. APRISM will respond within one business day to confirm the property, appointment, and payment.", analytics: { lead_type: "property_assessment", service_interest: "Property Assessment" } };
 }
