@@ -6,7 +6,7 @@ import { requireStaff } from "@/lib/admin-account";
 import { createClient } from "@/lib/supabase/server";
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const inquiryStatuses = new Set(["new", "contacted", "qualified", "closed"]);
+const inquiryStatuses = new Set(["new", "assessment_requested", "scheduled", "completed", "stewardship_offered", "converted", "lost", "contacted", "qualified", "closed"]);
 const requestStatuses = new Set(["submitted", "reviewing", "scheduled", "in_progress", "completed", "cancelled"]);
 const issueStatuses = new Set(["open", "monitoring", "in_progress", "resolved", "closed"]);
 
