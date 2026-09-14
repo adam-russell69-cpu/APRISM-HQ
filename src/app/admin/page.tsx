@@ -3,6 +3,7 @@ import { ArrowRight, Building2, CheckCircle2, ClipboardCheck, MessageSquareText,
 import { AdminPageHeader, adminPrimaryButton, adminSecondaryButton } from "@/components/admin/admin-page-header";
 import { EmptyState } from "@/components/admin/empty-state";
 import { StatusBadge, labelStatus } from "@/components/admin/status-badge";
+import { WorkingCapitalPanel } from "@/components/admin/working-capital-panel";
 import { requireStaff } from "@/lib/admin-account";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "America/Denver" });
@@ -19,12 +20,14 @@ type IntakeData = { owner_name?: string; property_address?: string; property_nam
 
 export default async function AdminPage() {
   const { supabase, account } = await requireStaff();
-  const [inquiryResult, propertyResult, requestResult, issueResult, assessmentResult] = await Promise.all([
+  const [inquiryResult, propertyResult, requestResult, issueResult, assessmentResult, capitalResult, invoiceResult] = await Promise.all([
     supabase.from("inquiries").select("id, name, property_location, status, created_at, updated_at").order("created_at", { ascending: false }).limit(30),
     supabase.from("properties").select("id, name, city, state, health_status, updated_at").order("updated_at", { ascending: false }).limit(30),
     supabase.from("service_requests").select("id, property_id, title, category, status, created_at, updated_at").order("updated_at", { ascending: false }).limit(30),
     supabase.from("issues").select("id, property_id, title, severity, status, created_at, updated_at").order("updated_at", { ascending: false }).limit(30),
     supabase.from("property_assessments").select("id, property_id, status, intake_data, assessment_date, created_at, updated_at").order("updated_at", { ascending: false }).limit(30),
+    supabase.from("working_capital").select("operating_cash, owner_paid_unreimbursed, client_advances, upcoming_commitments, minimum_reserve_target, stability_reserve_target, notes").eq("singleton_id", 1).maybeSingle(),
+    supabase.from("invoices").select("amount_due, status").in("status", ["sent", "partially_paid", "overdue"]),
   ]);
 
   const inquiries = inquiryResult.data ?? [];
@@ -32,6 +35,8 @@ export default async function AdminPage() {
   const requests = requestResult.data ?? [];
   const issues = issueResult.data ?? [];
   const assessments = assessmentResult.data ?? [];
+  const capital = capitalResult.data;
+  const receivables = (invoiceResult.data ?? []).reduce((sum, invoice) => sum + Number(invoice.amount_due ?? 0), 0);
   const propertyNames = new Map(properties.map((property) => [property.id, property.name]));
   const activeRequests = requests.filter((request) => !["completed", "cancelled"].includes(request.status));
   const activeIssues = issues.filter((issue) => !["resolved", "closed"].includes(issue.status));
@@ -71,6 +76,17 @@ export default async function AdminPage() {
         { href: "/admin/issues?view=priority", label: "Priority issues", value: priorityIssues.length, icon: TriangleAlert },
       ].map(({ href, label, value, icon: Icon }) => <Link key={label} href={href} className="group border border-black/10 bg-white p-5 transition hover:border-[#a8864e]/55"><div className="flex items-start justify-between"><Icon aria-hidden="true" className="size-5 text-[#8c6d36]" /><ArrowRight aria-hidden="true" className="size-4 text-black/20 transition group-hover:translate-x-0.5 group-hover:text-black/50" /></div><p className="mt-6 font-serif text-4xl">{value}</p><p className="mt-2 text-sm text-black/48">{label}</p></Link>)}
     </section>
+
+    <WorkingCapitalPanel
+      operatingCash={Number(capital?.operating_cash ?? 0)}
+      ownerPaidUnreimbursed={Number(capital?.owner_paid_unreimbursed ?? 0)}
+      clientAdvances={Number(capital?.client_advances ?? 0)}
+      upcomingCommitments={Number(capital?.upcoming_commitments ?? 0)}
+      receivables={receivables}
+      minimumReserveTarget={Number(capital?.minimum_reserve_target ?? 2500)}
+      stabilityReserveTarget={Number(capital?.stability_reserve_target ?? 5000)}
+      notes={capital?.notes ?? null}
+    />
 
     <div className="mt-6 grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
       <section className="border border-black/10 bg-white"><div className="border-b border-black/10 px-5 py-4"><p className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[#87682f]">Today & recent</p><h2 className="mt-2 font-serif text-2xl">Activity</h2></div>{activity.length ? <div className="divide-y divide-black/10">{activity.map((item) => <Link key={item.key} href={item.href} className="flex items-center justify-between gap-4 px-5 py-4 transition hover:bg-[#faf8f3]"><p className="text-sm text-black/66">{item.title}</p><time className="shrink-0 text-xs text-black/35">{shortDateFormatter.format(new Date(item.date))}</time></Link>)}</div> : <EmptyState icon={CheckCircle2} title="No recent activity" description="Operational updates will appear here as records change." />}</section>
