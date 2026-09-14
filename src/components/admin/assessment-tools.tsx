@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { ChevronDown, Download, Printer, Save } from "lucide-react";
 import { saveAssessmentReport, saveFieldAssessment, type AssessmentAdminState } from "@/app/admin/assessments/actions";
 import { assessmentAreaKey, assessmentDisclaimer, fieldAssessmentAreas, findingStatuses, reportFields } from "@/lib/assessment-config";
+import { assessmentExclusions, assessmentFieldRule, assessmentScope } from "@/lib/assessment-scope";
 
 type Option = { id: string; label: string };
 type Finding = { area: string; status?: string; notes?: string };
@@ -37,6 +38,16 @@ function RecordIdentity({ properties, inquiries, defaults }: AssessmentToolsProp
   </div>;
 }
 
+function ScopeGuardrail() {
+  return <details className="print-hidden mt-5 border border-[#a8864e]/35 bg-[#fffdf8]">
+    <summary className="cursor-pointer px-5 py-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#765a29]">Assessment scope & exclusions</summary>
+    <div className="grid gap-6 border-t border-[#a8864e]/20 px-5 py-5 lg:grid-cols-2">
+      <div><p className="text-xs font-semibold text-black/60">Included</p><ul className="mt-3 space-y-2 text-xs leading-5 text-black/50">{assessmentScope.map((item) => <li key={item}>• {item}</li>)}</ul></div>
+      <div><p className="text-xs font-semibold text-black/60">Excluded / refer out</p><ul className="mt-3 space-y-2 text-xs leading-5 text-black/50">{assessmentExclusions.map((item) => <li key={item}>• {item}</li>)}</ul></div>
+    </div>
+  </details>;
+}
+
 function SaveBar({ pending, state, label, pdfHref, completeAction }: { pending: boolean; state: AssessmentAdminState; label: string; pdfHref: string; completeAction?: React.ReactNode }) {
   return <div className="print-hidden sticky bottom-0 z-20 -mx-5 mt-7 flex flex-col gap-3 border-t border-black/12 bg-[#f8f6f0]/95 px-5 py-4 shadow-[0_-12px_28px_rgba(20,22,21,0.08)] backdrop-blur sm:-mx-7 sm:flex-row sm:items-center sm:px-7">
     <button disabled={pending} type="submit" className="inline-flex min-h-12 items-center justify-center gap-2 bg-[#171b19] px-6 text-xs font-semibold text-white disabled:opacity-60"><Save aria-hidden="true" className="size-4" />{pending ? "Saving..." : label}</button>
@@ -53,6 +64,8 @@ export function FieldAssessmentTool(props: AssessmentToolsProps) {
   return <form action={action} className="assessment-print-sheet bg-[#f8f6f0] p-5 sm:p-7">
     <div className="flex flex-col gap-5 border-b border-black/12 pb-6 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#866731]">Field Assessment</p><h2 className="mt-2 font-serif text-3xl sm:text-4xl">Observable-condition baseline</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-black/48">Open each property area as you walk the residence. Record only observable conditions, concise notes, and photo references.</p></div><PrintButton /></div>
     <div className="mt-6 border border-black/10 bg-white p-5"><RecordIdentity {...props} /></div>
+    <div className="mt-5 border-l-2 border-[#a8864e] bg-white px-4 py-3 text-sm font-semibold leading-6 text-black/62">{assessmentFieldRule}</div>
+    <ScopeGuardrail />
     <div className="mt-5 space-y-2">{fieldAssessmentAreas.map((area, index) => {
       const key = assessmentAreaKey(area);
       const finding = findingMap.get(area);
@@ -69,6 +82,7 @@ export function AssessmentReportTool(props: AssessmentToolsProps) {
   return <form action={action} className="assessment-print-sheet bg-[#f8f6f0] p-5 sm:p-7">
     <div className="flex flex-col gap-5 border-b border-black/12 pb-6 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#866731]">Property Assessment Report</p><h2 className="mt-2 font-serif text-3xl sm:text-4xl">Stewardship baseline & care plan</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-black/48">Translate field observations into a concise client record, prioritized plan, and stewardship recommendation.</p></div><PrintButton /></div>
     <div className="mt-6 border border-black/10 bg-white p-5"><RecordIdentity {...props} /></div>
+    <ScopeGuardrail />
     <div className="mt-5 grid gap-3">{reportFields.map(([name, label], index) => <label key={name} className="block border border-black/10 bg-white p-4 text-xs font-semibold text-black/50"><span className="mr-3 text-[#8f713d]">{String(index + 1).padStart(2, "0")}</span>{label}<textarea className={`${inputClass} min-h-28 resize-y py-3 font-normal`} name={name} defaultValue={props.defaults?.reportData?.[name] ?? ""} maxLength={8000} /></label>)}</div>
     <p className="mt-6 border-l-2 border-[#a8864e] pl-4 text-xs leading-6 text-black/48">{assessmentDisclaimer}</p>
     <SaveBar pending={pending} state={state} label="Save Report Draft" pdfHref="/admin/assessments/documents/APRISM_Property_Assessment_Report_Template_Fillable.pdf" />
