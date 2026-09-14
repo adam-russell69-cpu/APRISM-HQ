@@ -100,8 +100,15 @@ export async function markAssessmentComplete(formData: FormData) {
   if (!assessmentId) return;
 
   const { supabase } = await requireStaff();
-  const { error } = await supabase.from("property_assessments").update({ status: "completed" }).eq("id", assessmentId);
-  if (error) console.error("APRISM assessment completion failed", { code: error.code });
+  const { data: assessment, error } = await supabase.from("property_assessments").update({ status: "completed" }).eq("id", assessmentId).select("inquiry_id").single();
+  if (error) {
+    console.error("APRISM assessment completion failed", { code: error.code });
+  } else if (assessment?.inquiry_id) {
+    const { error: inquiryError } = await supabase.from("inquiries").update({ status: "completed" }).eq("id", assessment.inquiry_id);
+    if (inquiryError) console.error("APRISM lead completion sync failed", { code: inquiryError.code });
+    revalidatePath("/admin/clients");
+    revalidatePath(`/admin/clients/leads/${assessment.inquiry_id}`);
+  }
   revalidatePath("/admin/assessments");
   revalidatePath(`/admin/assessments/${assessmentId}`);
 }
