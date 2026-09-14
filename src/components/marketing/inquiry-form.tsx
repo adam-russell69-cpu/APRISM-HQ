@@ -1,36 +1,44 @@
 "use client";
 
 import { ArrowRight, CheckCircle2 } from "lucide-react";
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { submitInquiry, type InquiryState } from "@/app/(marketing)/contact/actions";
 import { trackMarketingEvent } from "@/components/analytics/aprism-analytics";
 
 const initialState: InquiryState = { status: "idle", message: "" };
 const inputClass = "mt-2 min-h-12 w-full border border-black/18 bg-white/45 px-4 text-sm text-black outline-none transition placeholder:text-black/32 focus:border-[#8f713d] focus:bg-white/75";
 const labelClass = "text-[0.62rem] font-semibold uppercase tracking-[0.15em] text-black/58";
+const allowedSources = new Set(["website", "facebook", "nextdoor", "google", "referral", "other"]);
 
 export function InquiryForm() {
   const [state, formAction, pending] = useActionState(submitInquiry, initialState);
+  const [source, setSource] = useState("website");
   const assessmentStarted = useRef(false);
   const conversionTracked = useRef(false);
   const conversionLeadType = state.analytics?.lead_type;
   const conversionServiceInterest = state.analytics?.service_interest;
 
+  useEffect(() => {
+    const campaignSource = new URLSearchParams(window.location.search).get("source")?.toLowerCase() ?? "website";
+    setSource(allowedSources.has(campaignSource) ? campaignSource : "website");
+  }, []);
+
   function trackAssessmentStart() {
     if (assessmentStarted.current) return;
     assessmentStarted.current = true;
-    trackMarketingEvent("assessment_start", { lead_type: "property_assessment" });
+    trackMarketingEvent("assessment_start", { lead_type: "property_assessment", source });
   }
 
   useEffect(() => {
     if (state.status !== "success" || !conversionLeadType || !conversionServiceInterest || conversionTracked.current) return;
     conversionTracked.current = true;
-    trackMarketingEvent("generate_lead", { lead_type: conversionLeadType, service_interest: conversionServiceInterest });
-  }, [conversionLeadType, conversionServiceInterest, state.status]);
+    trackMarketingEvent("generate_lead", { lead_type: conversionLeadType, service_interest: conversionServiceInterest, source: state.analytics?.source ?? source });
+  }, [conversionLeadType, conversionServiceInterest, source, state.analytics?.source, state.status]);
 
   return (
     <form action={formAction} className="border border-black/12 bg-[#f7f5ee] p-5 sm:p-8" onFocusCapture={trackAssessmentStart}>
       <input type="hidden" name="services" value="Property Assessment" />
+      <input type="hidden" name="source" value={source} />
       <div className="absolute -left-[10000px] top-auto size-px overflow-hidden" aria-hidden="true"><label>Company website<input type="text" name="companyWebsite" tabIndex={-1} autoComplete="off" /></label></div>
       <div className="grid gap-6 sm:grid-cols-2">
         <label className={labelClass}>Name<input className={inputClass} type="text" name="name" autoComplete="name" required /></label>
