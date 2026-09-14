@@ -7,6 +7,7 @@ import { requireStaff } from "@/lib/admin-account";
 export type AssessmentAdminState = {
   status: "idle" | "error" | "success";
   message: string;
+  assessmentId?: string;
 };
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -32,11 +33,7 @@ export async function saveFieldAssessment(_previousState: AssessmentAdminState, 
   const findings = fieldAssessmentAreas.map((area) => {
     const key = assessmentAreaKey(area);
     const status = value(formData, `${key}_status`, 40);
-    return {
-      area,
-      status: allowedStatuses.has(status as (typeof findingStatuses)[number]) ? status : "Monitor",
-      notes: value(formData, `${key}_notes`),
-    };
+    return { area, status: allowedStatuses.has(status as (typeof findingStatuses)[number]) ? status : "Monitor", notes: value(formData, `${key}_notes`) };
   });
 
   const { supabase, account } = await requireStaff();
@@ -59,7 +56,7 @@ export async function saveFieldAssessment(_previousState: AssessmentAdminState, 
 
   revalidatePath("/admin/assessments");
   revalidatePath(`/admin/assessments/${result.data.id}`);
-  return { status: "success", message: "Field assessment draft saved." };
+  return { status: "success", message: "Field assessment draft saved. Camera is ready.", assessmentId: result.data.id };
 }
 
 export async function saveAssessmentReport(_previousState: AssessmentAdminState, formData: FormData): Promise<AssessmentAdminState> {
@@ -67,20 +64,11 @@ export async function saveAssessmentReport(_previousState: AssessmentAdminState,
   const propertyLabel = value(formData, "property_label", 240);
   const clientName = value(formData, "client_name", 240);
   const assessmentDate = value(formData, "assessment_date", 10);
-  if (!propertyLabel || !clientName || !/^\d{4}-\d{2}-\d{2}$/.test(assessmentDate)) {
-    return { status: "error", message: "Add the client, property, and assessment date before saving." };
-  }
+  if (!propertyLabel || !clientName || !/^\d{4}-\d{2}-\d{2}$/.test(assessmentDate)) return { status: "error", message: "Add the client, property, and assessment date before saving." };
 
   const reportData = Object.fromEntries(reportFields.map(([name]) => [name, value(formData, name)]));
   const { supabase, account } = await requireStaff();
-  const record = {
-    property_id: nullableUuid(formData, "property_id"),
-    inquiry_id: nullableUuid(formData, "inquiry_id"),
-    assessment_date: assessmentDate,
-    status: "report_draft",
-    report_data: { ...reportData, prepared_by: account.displayName },
-    stewardship_recommendation: reportData.stewardship_recommendation || null,
-  };
+  const record = { property_id: nullableUuid(formData, "property_id"), inquiry_id: nullableUuid(formData, "inquiry_id"), assessment_date: assessmentDate, status: "report_draft", report_data: { ...reportData, prepared_by: account.displayName }, stewardship_recommendation: reportData.stewardship_recommendation || null };
   const result = assessmentId
     ? await supabase.from("property_assessments").update(record).eq("id", assessmentId).select("id").single()
     : await supabase.from("property_assessments").insert({ ...record, intake_data: { property_label: propertyLabel, client_name: clientName }, created_by: account.userId }).select("id").single();
@@ -89,21 +77,18 @@ export async function saveAssessmentReport(_previousState: AssessmentAdminState,
     console.error("APRISM assessment report save failed", { code: result.error?.code ?? "missing_assessment_id" });
     return { status: "error", message: "The assessment report could not be saved. Please try again." };
   }
-
   revalidatePath("/admin/assessments");
   revalidatePath(`/admin/assessments/${result.data.id}`);
-  return { status: "success", message: "Property assessment report draft saved." };
+  return { status: "success", message: "Property assessment report draft saved.", assessmentId: result.data.id };
 }
 
 export async function markAssessmentComplete(formData: FormData) {
   const assessmentId = nullableUuid(formData, "assessment_id");
   if (!assessmentId) return;
-
   const { supabase } = await requireStaff();
   const { data: assessment, error } = await supabase.from("property_assessments").update({ status: "completed" }).eq("id", assessmentId).select("inquiry_id").single();
-  if (error) {
-    console.error("APRISM assessment completion failed", { code: error.code });
-  } else if (assessment?.inquiry_id) {
+  if (error) console.error("APRISM assessment completion failed", { code: error.code });
+  else if (assessment?.inquiry_id) {
     const { error: inquiryError } = await supabase.from("inquiries").update({ status: "completed" }).eq("id", assessment.inquiry_id);
     if (inquiryError) console.error("APRISM lead completion sync failed", { code: inquiryError.code });
     revalidatePath("/admin/clients");
