@@ -15,11 +15,49 @@ export async function updateInquiryStatus(formData: FormData) {
   const status = String(formData.get("status") ?? "");
   if (!uuidPattern.test(id) || !inquiryStatuses.has(status)) return;
 
-  const { supabase } = await requireStaff();
+  const { supabase, account } = await requireStaff();
   const { error } = await supabase.from("inquiries").update({ status }).eq("id", id);
-  if (error) console.error("APRISM inquiry status update failed", { code: error.code });
+  if (error) {
+    console.error("APRISM inquiry status update failed", { code: error.code });
+    return;
+  }
+
+  if (status === "scheduled") {
+    const { data: inquiry } = await supabase
+      .from("inquiries")
+      .select("id, name, email, phone, property_location, property_type, residency, home_size, preferred_contact_method, preferred_time, message")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (inquiry) {
+      const { data: existing } = await supabase.from("property_assessments").select("id").eq("inquiry_id", id).maybeSingle();
+      if (!existing) {
+        const intakeData = {
+          owner_name: inquiry.name,
+          email: inquiry.email,
+          phone: inquiry.phone,
+          property_address: inquiry.property_location,
+          property_type: inquiry.property_type,
+          property_use: inquiry.residency,
+          square_feet: inquiry.home_size,
+          preferred_contact: [inquiry.preferred_contact_method, inquiry.preferred_time].filter(Boolean).join(" · "),
+          current_concerns: inquiry.message,
+          owner_priorities: inquiry.message,
+        };
+        const { error: assessmentError } = await supabase.from("property_assessments").insert({
+          inquiry_id: id,
+          status: "scheduled",
+          intake_data: intakeData,
+          created_by: account.userId,
+        });
+        if (assessmentError) console.error("APRISM scheduled assessment creation failed", { code: assessmentError.code });
+      }
+    }
+  }
+
   revalidatePath("/admin");
   revalidatePath("/admin/clients");
+  revalidatePath("/admin/assessments");
   revalidatePath(`/admin/clients/leads/${id}`);
 }
 
