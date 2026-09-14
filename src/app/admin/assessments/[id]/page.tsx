@@ -5,6 +5,7 @@ import { CheckCircle2, ChevronLeft, Download, Eye, FileText } from "lucide-react
 import { markAssessmentComplete } from "@/app/admin/assessments/actions";
 import { ActionMenu, actionMenuItem } from "@/components/admin/action-menu";
 import { AdminPageHeader, adminPrimaryButton, adminSecondaryButton } from "@/components/admin/admin-page-header";
+import { AssessmentPhotoCapture } from "@/components/admin/assessment-photo-capture";
 import { AssessmentReportTool, FieldAssessmentTool, type AssessmentDefaults } from "@/components/admin/assessment-tools";
 import { PrintControl } from "@/components/admin/print-control";
 import { StatusBadge } from "@/components/admin/status-badge";
@@ -15,6 +16,13 @@ import { intakeSections } from "@/lib/assessment-config";
 export const metadata: Metadata = { title: "Assessment Record" };
 const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/Denver" });
 type IntakeData = Record<string, string | boolean> & { owner_name?: string; client_name?: string; property_address?: string; property_name?: string; property_label?: string; email?: string; phone?: string };
+
+type AssessmentPhotoRow = {
+  id: string;
+  area: string | null;
+  storage_path: string;
+  original_name: string | null;
+};
 
 function stageFor(status: string) {
   if (["completed", "published"].includes(status)) return "Complete";
@@ -33,12 +41,26 @@ export default async function AssessmentDetailPage({ params, searchParams }: { p
   const { id } = await params;
   const requested = (await searchParams).tab;
   const { supabase } = await requireStaff();
-  const [{ data: assessment }, { data: properties }, { data: inquiries }] = await Promise.all([
+  const [{ data: assessment }, { data: properties }, { data: inquiries }, { data: photoRows }] = await Promise.all([
     supabase.from("property_assessments").select("id, property_id, inquiry_id, status, assessment_date, intake_data, field_notes, findings, report_data, stewardship_recommendation, created_at, updated_at").eq("id", id).maybeSingle(),
     supabase.from("properties").select("id, name, address_line_1, city, state, health_status").order("name"),
     supabase.from("inquiries").select("id, name, property_location").order("created_at", { ascending: false }).limit(100),
+    supabase.from("property_assessment_photos").select("id, area, storage_path, original_name").eq("assessment_id", id).order("created_at"),
   ]);
   if (!assessment) notFound();
+
+  const photos = (photoRows ?? []) as AssessmentPhotoRow[];
+  let initialPhotos: Array<{ id: string; area: string | null; storagePath: string; originalName: string | null; url: string }> = [];
+  if (photos.length) {
+    const { data: signedUrls } = await supabase.storage.from("assessment-photos").createSignedUrls(photos.map((photo) => photo.storage_path), 60 * 60);
+    initialPhotos = photos.map((photo, index) => ({
+      id: photo.id,
+      area: photo.area,
+      storagePath: photo.storage_path,
+      originalName: photo.original_name,
+      url: signedUrls?.[index]?.signedUrl ?? "",
+    })).filter((photo) => Boolean(photo.url));
+  }
 
   const intake = (assessment.intake_data ?? {}) as IntakeData;
   const property = (properties ?? []).find((item) => item.id === assessment.property_id);
@@ -75,7 +97,7 @@ export default async function AssessmentDetailPage({ params, searchParams }: { p
     <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
       <section className="min-w-0">
         {tab === "intake" ? <div className="space-y-3">{intakeSections.map((section) => { const values = section.fields.map((field) => ({ label: field.label, value: intake[field.name] })).filter((item) => item.value !== undefined && item.value !== "" && item.value !== false); if (!values.length) return null; return <section key={section.eyebrow} className="border border-black/10 bg-white p-5 sm:p-6"><p className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[#87682f]">{section.title}</p><dl className="mt-4 grid gap-x-8 gap-y-5 sm:grid-cols-2">{values.map((item) => <div key={item.label}><dt className="text-xs font-semibold text-black/38">{item.label}</dt><dd className="mt-1 whitespace-pre-wrap text-sm leading-6 text-black/68">{item.value === true ? "Yes" : String(item.value)}</dd></div>)}</dl></section>; })}</div> : null}
-        {tab === "field" ? <FieldAssessmentTool properties={options} inquiries={inquiryOptions} defaults={defaults} /> : null}
+        {tab === "field" ? <div><AssessmentPhotoCapture assessmentId={assessment.id} initialPhotos={initialPhotos} /><FieldAssessmentTool properties={options} inquiries={inquiryOptions} defaults={defaults} /></div> : null}
         {tab === "report" ? <AssessmentReportTool properties={options} inquiries={inquiryOptions} defaults={defaults} /> : null}
         {tab === "documents" ? <div className="border border-black/10 bg-white p-5 sm:p-7"><p className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[#87682f]">Staff reference library</p><h2 className="mt-2 font-serif text-3xl">Assessment documents</h2><div className="mt-6 grid gap-3"><a href="/documents/assessments/APRISM_Property_Assessment_Intake_Fillable.pdf" className="flex items-center justify-between border border-black/10 p-4 text-sm font-semibold hover:bg-[#faf8f3]"><span className="flex items-center gap-3"><FileText aria-hidden="true" className="size-4 text-[#8f713d]" />Client Intake PDF</span><Download aria-hidden="true" className="size-4 text-black/30" /></a><a href="/admin/assessments/documents/APRISM_Field_Assessment_Checklist.pdf" className="flex items-center justify-between border border-black/10 p-4 text-sm font-semibold hover:bg-[#faf8f3]"><span className="flex items-center gap-3"><FileText aria-hidden="true" className="size-4 text-[#8f713d]" />Field Assessment Checklist</span><Download aria-hidden="true" className="size-4 text-black/30" /></a><a href="/admin/assessments/documents/APRISM_Property_Assessment_Report_Template_Fillable.pdf" className="flex items-center justify-between border border-black/10 p-4 text-sm font-semibold hover:bg-[#faf8f3]"><span className="flex items-center gap-3"><FileText aria-hidden="true" className="size-4 text-[#8f713d]" />Report Template</span><Download aria-hidden="true" className="size-4 text-black/30" /></a></div></div> : null}
       </section>
