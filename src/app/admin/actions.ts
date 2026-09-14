@@ -10,6 +10,35 @@ const inquiryStatuses = new Set(["new", "contacted", "qualified", "closed"]);
 const requestStatuses = new Set(["submitted", "reviewing", "scheduled", "in_progress", "completed", "cancelled"]);
 const issueStatuses = new Set(["open", "monitoring", "in_progress", "resolved", "closed"]);
 
+function parseMoney(value: FormDataEntryValue | null) {
+  const parsed = Number(String(value ?? "0").replace(/[$,]/g, ""));
+  return Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed * 100) / 100 : 0;
+}
+
+export async function updateWorkingCapital(formData: FormData) {
+  const operatingCash = parseMoney(formData.get("operating_cash"));
+  const ownerPaidUnreimbursed = parseMoney(formData.get("owner_paid_unreimbursed"));
+  const clientAdvances = parseMoney(formData.get("client_advances"));
+  const upcomingCommitments = parseMoney(formData.get("upcoming_commitments"));
+  const notes = String(formData.get("notes") ?? "").trim().slice(0, 2000) || null;
+
+  const { supabase, account } = await requireStaff();
+  const { error } = await supabase.from("working_capital").upsert({
+    singleton_id: 1,
+    operating_cash: operatingCash,
+    owner_paid_unreimbursed: ownerPaidUnreimbursed,
+    client_advances: clientAdvances,
+    upcoming_commitments: upcomingCommitments,
+    minimum_reserve_target: 2500,
+    stability_reserve_target: 5000,
+    notes,
+    updated_by: account.userId,
+  }, { onConflict: "singleton_id" });
+
+  if (error) console.error("APRISM working capital update failed", { code: error.code });
+  revalidatePath("/admin");
+}
+
 export async function updateInquiryStatus(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "");
