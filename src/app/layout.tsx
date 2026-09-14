@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
 import { AprismAnalytics } from "@/components/analytics/aprism-analytics";
+import { OfflineRegister } from "@/components/offline-register";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -57,7 +58,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${manrope.variable} ${cormorant.variable}`}
       data-scroll-behavior="smooth"
     >
-      <body>{children}</body>
+      <body>
+        <OfflineRegister />
+        {children}
+      </body>
       <AprismAnalytics />
     </html>
   );
