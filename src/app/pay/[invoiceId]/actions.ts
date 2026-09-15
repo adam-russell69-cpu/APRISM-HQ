@@ -79,20 +79,21 @@ export async function createPublicInvoiceCheckout(formData: FormData) {
   try {
     await assertExpectedStripeAccount(stripe);
 
-    let customerId = invoice.stripe_customer_id ?? account.stripe_customer_id;
-    if (customerId) {
+    let customerId: string | null = null;
+    const customerCandidates = Array.from(new Set([account.stripe_customer_id, invoice.stripe_customer_id].filter(Boolean))) as string[];
+    for (const candidateId of customerCandidates) {
       try {
-        const customer = await stripe.customers.retrieve(customerId);
-        if (customer.deleted) customerId = null;
+        const customer = await stripe.customers.retrieve(candidateId);
+        if (!customer.deleted) {
+          customerId = candidateId;
+          break;
+        }
       } catch (customerLookupError) {
         const stripeError = customerLookupError as Stripe.errors.StripeError;
-        if (stripeError?.code === "resource_missing") {
-          customerId = null;
-        } else {
-          throw customerLookupError;
-        }
+        if (stripeError?.code !== "resource_missing") throw customerLookupError;
       }
     }
+
     if (!customerId) {
       const customer = await stripe.customers.create({
         name: account.legal_name ?? account.display_name,
@@ -100,8 +101,15 @@ export async function createPublicInvoiceCheckout(formData: FormData) {
         metadata: { aprism_client_account_id: account.id, aprism_account_type: account.account_type },
       }, { idempotencyKey: `aprism:customer:${account.id}` });
       customerId = customer.id;
+    }
+
+    if (account.stripe_customer_id !== customerId) {
       const { error: customerUpdateError } = await admin.from("client_accounts").update({ stripe_customer_id: customerId }).eq("id", account.id);
       if (customerUpdateError) throw customerUpdateError;
+    }
+    if (invoice.stripe_customer_id !== customerId) {
+      const { error: invoiceCustomerUpdateError } = await admin.from("invoices").update({ stripe_customer_id: customerId }).eq("id", invoice.id);
+      if (invoiceCustomerUpdateError) throw invoiceCustomerUpdateError;
     }
 
     const amount = amountToMinorUnits(invoice.amount_due, invoice.currency);
