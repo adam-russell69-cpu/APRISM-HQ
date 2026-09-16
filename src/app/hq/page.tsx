@@ -14,14 +14,14 @@ export default async function TodayPage() {
     supabase.from("properties").select("id, name, city, state").order("updated_at", { ascending: false }).limit(50),
     supabase.from("service_requests").select("id, property_id, title, category, status, updated_at").order("updated_at", { ascending: false }).limit(50),
     supabase.from("issues").select("id, property_id, title, severity, status, updated_at").order("updated_at", { ascending: false }).limit(50),
-    supabase.from("repair_orders").select("id, ro_number, status, customer_concern, service_type, updated_at, motorcycles(year, make, model), client_accounts(name)").order("updated_at", { ascending: false }).limit(30),
+    supabase.from("repair_orders").select("id, ro_number, status, service_name, customer_request, mileage_in, updated_at").order("updated_at", { ascending: false }).limit(30),
   ]);
 
   const properties = propertyResult.data ?? [];
   const propertyNames = new Map(properties.map((property) => [property.id, property.name]));
   const activeRequests = (requestResult.data ?? []).filter((request) => !["completed", "cancelled"].includes(request.status));
   const activeIssues = (issueResult.data ?? []).filter((issue) => !["resolved", "closed"].includes(issue.status));
-  const activeMoto = (motoResult.data ?? []).filter((ro) => !["Completed", "Cancelled", "completed", "cancelled"].includes(ro.status));
+  const activeMoto = (motoResult.data ?? []).filter((ro) => !["completed", "cancelled"].includes(ro.status));
 
   const work = [
     ...activeRequests.map((request) => ({
@@ -33,19 +33,15 @@ export default async function TodayPage() {
       status: request.status,
       updated: request.updated_at,
     })),
-    ...activeMoto.map((ro) => {
-      const bike = Array.isArray(ro.motorcycles) ? ro.motorcycles[0] : ro.motorcycles;
-      const customer = Array.isArray(ro.client_accounts) ? ro.client_accounts[0] : ro.client_accounts;
-      return {
-        key: `moto-${ro.id}`,
-        href: `/hq/moto/ro/${ro.id}`,
-        module: "Moto",
-        title: customer?.name || ro.service_type || `RO ${ro.ro_number ?? ""}`.trim(),
-        detail: bike ? `${bike.year ?? ""} ${bike.make ?? ""} ${bike.model ?? ""}`.replace(/\s+/g, " ").trim() : ro.customer_concern || "Repair order",
-        status: ro.status,
-        updated: ro.updated_at,
-      };
-    }),
+    ...activeMoto.map((ro) => ({
+      key: `moto-${ro.id}`,
+      href: "/hq/moto",
+      module: "Moto",
+      title: ro.service_name || `RO ${ro.ro_number}`,
+      detail: ro.customer_request || `${ro.mileage_in.toLocaleString()} mi`,
+      status: ro.status,
+      updated: ro.updated_at,
+    })),
   ].sort((a, b) => new Date(b.updated).getTime() - new Date(a.updated).getTime()).slice(0, 8);
 
   const priorityIssues = activeIssues.filter((issue) => ["Critical", "Action Recommended"].includes(issue.severity));
