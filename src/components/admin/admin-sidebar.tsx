@@ -11,6 +11,7 @@ const navigation = [
   { href: "/admin/assessments", label: "Assessments", icon: ClipboardCheck },
   { href: "/admin/properties", label: "Properties", icon: Building2 },
   { href: "/admin/clients", label: "Clients & Leads", icon: Users },
+  { href: "/admin/work-orders", label: "Work Orders", icon: Wrench },
   { href: "/admin/billing", label: "Billing", icon: CreditCard },
   { href: "/admin/requests", label: "Requests", icon: MessageSquareText },
   { href: "/admin/issues", label: "Issues", icon: TriangleAlert },
