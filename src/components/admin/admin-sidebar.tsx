@@ -14,6 +14,7 @@ const navigation = [
   { href: "/admin/clients", label: "Clients & Leads", icon: Users },
   { href: "/admin/billing", label: "Billing", icon: CreditCard },
   { href: "/admin/requests", label: "Requests", icon: MessageSquareText },
+  { href: "/admin/work-orders", label: "Work Orders", icon: Wrench },
   { href: "/admin/issues", label: "Issues", icon: TriangleAlert },
   { href: "/admin/documents", label: "Documents", icon: FileText },
   { href: "/admin/vendors", label: "Vendors", icon: Wrench },
