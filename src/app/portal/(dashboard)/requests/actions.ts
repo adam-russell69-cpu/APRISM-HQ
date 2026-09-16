@@ -11,22 +11,80 @@ export async function submitServiceRequest(_previousState: RequestState, formDat
   const description = String(formData.get("description") ?? "").trim();
   const preferredTiming = String(formData.get("preferredTiming") ?? "").trim();
   const propertyId = String(formData.get("propertyId") ?? "").trim();
-  if (!propertyId || !title || !category || !description) return { status: "error", message: "Choose a property and complete the request title, category, and details." };
-  if (title.length > 120 || category.length > 80 || description.length > 5000 || preferredTiming.length > 250) return { status: "error", message: "One or more request fields are longer than the portal accepts." };
+
+  if (!propertyId || !title || !category || !description) {
+    return { status: "error", message: "Choose a property and complete the request title, category, and details." };
+  }
+  if (title.length > 120 || category.length > 80 || description.length > 5000 || preferredTiming.length > 250) {
+    return { status: "error", message: "One or more request fields are longer than the portal accepts." };
+  }
 
   const supabase = await createClient();
-  if (!supabase) return { status: "success", message: "Request validated in MVP preview. It will be stored when the APRISM Supabase project is connected." };
+  if (!supabase) {
+    return { status: "success", message: "Request validated in MVP preview. It will be stored when the APRISM Supabase project is connected." };
+  }
 
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
   if (!userId) return { status: "error", message: "Your session has expired. Please sign in again." };
 
-  const { data: membership, error: membershipError } = await supabase.from("property_members").select("property_id").eq("user_id", userId).eq("property_id", propertyId).maybeSingle();
-  if (membershipError || !membership) return { status: "error", message: "No authorized property membership was found for this account." };
+  const { data: property, error: propertyError } = await supabase
+    .from("properties")
+    .select("id, client_account_id")
+    .eq("id", propertyId)
+    .maybeSingle();
 
-  const { error } = await supabase.from("service_requests").insert({ property_id: membership.property_id, requested_by: userId, title, category, description, preferred_timing: preferredTiming || null });
-  if (error) return { status: "error", message: "APRISM could not save this request. Please contact your steward directly." };
+  if (propertyError || !property) {
+    return { status: "error", message: "No authorized property was found for this request." };
+  }
+
+  const [propertyMembershipResult, accountMembershipResult] = await Promise.all([
+    supabase
+      .from("property_members")
+      .select("property_id, can_request_service")
+      .eq("user_id", userId)
+      .eq("property_id", propertyId)
+      .maybeSingle(),
+    property.client_account_id
+      ? supabase
+          .from("client_account_members")
+          .select("client_account_id, role, active")
+          .eq("user_id", userId)
+          .eq("client_account_id", property.client_account_id)
+          .eq("active", true)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+
+  const propertyMemberCanRequest = Boolean(
+    propertyMembershipResult.data?.property_id && propertyMembershipResult.data.can_request_service,
+  );
+  const accountMemberCanRequest = Boolean(accountMembershipResult.data?.client_account_id && accountMembershipResult.data.active);
+
+  if (!propertyMemberCanRequest && !accountMemberCanRequest) {
+    return { status: "error", message: "This account does not have permission to request service for the selected property." };
+  }
+
+  const { error } = await supabase.from("service_requests").insert({
+    property_id: property.id,
+    requested_by: userId,
+    title,
+    category,
+    description,
+    preferred_timing: preferredTiming || null,
+  });
+
+  if (error) {
+    console.error("[service-request] Insert failed", { code: error.code, message: error.message });
+    return { status: "error", message: "APRISM could not save this request. Please contact your steward directly." };
+  }
+
   revalidatePath("/portal");
   revalidatePath("/portal/requests");
-  return { status: "success", message: "Your service request has been recorded for APRISM review." };
+  revalidatePath("/portal/business/work-orders");
+
+  return {
+    status: "success",
+    message: "Your service request has been recorded and added to the APRISM work queue.",
+  };
 }
