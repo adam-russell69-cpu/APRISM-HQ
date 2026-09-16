@@ -1,0 +1,129 @@
+name: Supabase Database Tests
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/database/**"
+      - ".github/workflows/supabase-database-tests.yml"
+  push:
+    branches:
+      - build/hq-v1
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/database/**"
+      - ".github/workflows/supabase-database-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-db-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  database-contracts:
+    name: Migrations + pgTAP contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Show tool versions
+        run: |
+          set -euxo pipefail
+          supabase --version
+          docker --version
+
+      - name: Start local Supabase and apply migrations
+        id: db_start
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p .ci-logs
+
+          echo "Starting a disposable local Supabase stack. The CLI applies supabase/migrations in timestamp order."
+          if ! supabase start 2>&1 | tee .ci-logs/supabase-start.log; then
+            echo "::error title=Supabase startup or migration failure::The local stack failed to start or a migration failed. Open the 'Migration diagnostics' step and the uploaded supabase-db-logs artifact."
+            exit 1
+          fi
+
+          echo "Local Supabase started successfully."
+
+      - name: Verify migration state
+        if: success()
+        shell: bash
+        run: |
+          set -o pipefail
+          echo "Applied local migration state:"
+          supabase migration list --local 2>&1 | tee .ci-logs/migration-list.log
+
+      - name: Run pgTAP database contract tests
+        id: db_test
+        if: success()
+        shell: bash
+        run: |
+          set -o pipefail
+          echo "Running supabase/tests/database/*.test.sql"
+          if ! supabase test db 2>&1 | tee .ci-logs/pgtap.log; then
+            echo "::error title=pgTAP contract failure::One or more database contract tests failed. Search the pgTAP output above for 'not ok' and inspect the uploaded supabase-db-logs artifact."
+            exit 1
+          fi
+
+      - name: Migration diagnostics
+        if: failure()
+        shell: bash
+        run: |
+          set +e
+          mkdir -p .ci-logs
+          {
+            echo "=== Supabase status ==="
+            supabase status
+            echo
+            echo "=== Migration state ==="
+            supabase migration list --local
+            echo
+            echo "=== Docker containers ==="
+            docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'
+          } 2>&1 | tee .ci-logs/diagnostics.log
+
+          echo
+          echo "### Actionable failure guide" >> "$GITHUB_STEP_SUMMARY"
+          echo "- If startup failed at a migration, inspect **supabase-start.log** for the migration filename and PostgreSQL error." >> "$GITHUB_STEP_SUMMARY"
+          echo "- If pgTAP failed, inspect **pgtap.log** and search for **not ok**. The following diagnostic text normally identifies the broken RLS, constraint, grant, or RPC contract." >> "$GITHUB_STEP_SUMMARY"
+          echo "- **migration-list.log** shows which migrations reached the local database before failure." >> "$GITHUB_STEP_SUMMARY"
+          echo "- **diagnostics.log** records local Supabase and Docker state." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload database logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-db-logs-${{ github.run_id }}
+          path: .ci-logs/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Stop local Supabase
+        if: always()
+        shell: bash
+        run: supabase stop --no-backup || true
+
+      - name: Database validation summary
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo "### ✅ Supabase database validation passed"
+            echo "- Local Supabase started successfully."
+            echo "- Repository migrations applied successfully."
+            echo "- pgTAP database contract tests passed."
+            echo "- No production or preview Supabase project was modified."
+          } >> "$GITHUB_STEP_SUMMARY"
