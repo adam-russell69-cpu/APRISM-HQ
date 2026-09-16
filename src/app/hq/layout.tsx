@@ -1,5 +1,30 @@
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { ClipboardList, FlaskConical, Home, Wrench } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "APRISM HQ",
+  description: "APRISM operational headquarters for Property, Moto and R&D.",
+  applicationName: "APRISM HQ",
+  manifest: "/hq/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "APRISM HQ",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    apple: [{ url: "/hq/icon", sizes: "512x512", type: "image/png" }],
+    icon: [{ url: "/hq/icon", sizes: "512x512", type: "image/png" }],
+  },
+  robots: { index: false, follow: false },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#10100f",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 const nav = [
   { href: "/hq", label: "Today", icon: ClipboardList },
