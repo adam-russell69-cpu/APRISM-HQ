@@ -32,6 +32,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Prepare database log directory
+        shell: bash
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/.ci-logs"
+          printf 'GitHub Actions run %s\n' "$GITHUB_RUN_ID" > "$GITHUB_WORKSPACE/.ci-logs/run.txt"
+
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
@@ -107,8 +113,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: supabase-db-logs-${{ github.run_id }}
-          path: .ci-logs/
-          if-no-files-found: warn
+          path: ${{ github.workspace }}/.ci-logs/
+          if-no-files-found: error
+          include-hidden-files: true
           retention-days: 14
 
       - name: Stop local Supabase
