@@ -178,7 +178,7 @@ select extensions.is(
 
 select extensions.is(
   (
-    select count(*)::integer from information_schema.triggers
+    select count(distinct trigger_name)::integer from information_schema.triggers
     where trigger_schema = 'public'
       and trigger_name = any(array[
         'business_locations_validate_account', 'work_orders_validate_account',
