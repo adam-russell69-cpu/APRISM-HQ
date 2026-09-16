@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Building2, CheckCircle2, ClipboardCheck, MessageSquareText, Plus, TriangleAlert } from "lucide-react";
+import { ArrowRight, Building2, CheckCircle2, ClipboardCheck, LayoutGrid, MessageSquareText, Plus, TriangleAlert } from "lucide-react";
 import { AdminPageHeader, adminPrimaryButton, adminSecondaryButton } from "@/components/admin/admin-page-header";
 import { EmptyState } from "@/components/admin/empty-state";
 import { StatusBadge, labelStatus } from "@/components/admin/status-badge";
@@ -61,7 +61,7 @@ export default async function AdminPage() {
   ].toSorted((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 8);
 
   return <main className="mx-auto max-w-[1500px] px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
-    <AdminPageHeader eyebrow="Private operations" title={`${getMountainGreeting(now)}, ${account.displayName.split(" ")[0]}`} description={`APRISM Operations · ${dateFormatter.format(now)}`} actions={<><Link href="/admin/assessments/new" className={adminPrimaryButton}><ClipboardCheck aria-hidden="true" className="size-4" />New Assessment</Link><Link href="/admin/properties/new" className={adminSecondaryButton}><Plus aria-hidden="true" className="size-4" />Add Property</Link></>} />
+    <AdminPageHeader eyebrow="Private operations" title={`${getMountainGreeting(now)}, ${account.displayName.split(" ")[0]}`} description={`APRISM Operations · ${dateFormatter.format(now)}`} actions={<><Link href="/hq" className={adminSecondaryButton}><LayoutGrid aria-hidden="true" className="size-4" />APRISM HQ</Link><Link href="/admin/assessments/new" className={adminPrimaryButton}><ClipboardCheck aria-hidden="true" className="size-4" />New Assessment</Link><Link href="/admin/properties/new" className={adminSecondaryButton}><Plus aria-hidden="true" className="size-4" />Add Property</Link></>} />
 
     <section className="mt-7 overflow-hidden border border-black/10 bg-[#171b19] text-white">
       <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 sm:px-6"><div><p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[#d0b274]">Needs attention</p><h2 className="mt-2 font-serif text-3xl">Operational queue</h2></div><span className="text-sm text-white/35">{attention.length} active</span></div>
