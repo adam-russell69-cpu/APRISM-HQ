@@ -29,8 +29,13 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const { data } = await supabase.auth.getClaims();
-  const isSignedIn = Boolean(data?.claims?.sub);
+  // Refresh and validate the authenticated user using the same authoritative
+  // Supabase check used by protected server routes. This prevents the proxy
+  // and requireStaff() from disagreeing about the same browser session.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isSignedIn = Boolean(user);
   const isLoginRoute = request.nextUrl.pathname === "/portal/login";
 
   if (!isSignedIn && !isLoginRoute) {
