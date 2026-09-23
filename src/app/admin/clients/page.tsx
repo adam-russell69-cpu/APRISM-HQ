@@ -25,8 +25,8 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const view = (await searchParams).view === "clients" ? "clients" : "leads";
   const { supabase } = await requireStaff();
   const [{ data: inquiries }, { data: accounts }, { data: properties }] = await Promise.all([
-    supabase.from("inquiries").select("id, name, property_location, property_type, services, status, created_at").order("created_at", { ascending: false }).limit(100),
-    supabase.from("client_accounts").select("id, account_type, display_name, billing_email, payment_terms_days, status, recurring_active, expected_monthly_value, created_at").order("display_name"),
+    supabase.from("inquiries").select("id, name, property_location, property_type, services, status, archived_at, created_at").order("created_at", { ascending: false }).limit(100),
+    supabase.from("client_accounts").select("id, account_type, segment, display_name, billing_email, payment_terms_days, status, recurring_active, expected_monthly_value, next_service_at, created_at").order("display_name"),
     supabase.from("properties").select("id, client_account_id"),
   ]);
 
@@ -35,10 +35,10 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
     if (property.client_account_id) propertyCountByAccount.set(property.client_account_id, (propertyCountByAccount.get(property.client_account_id) ?? 0) + 1);
   }
 
-  const activeClients = (accounts ?? []).filter((account) => account.status === "active");
+  const activeClients = (accounts ?? []).filter((account) => account.status === "active" && account.segment === "property");
   const recurringClients = activeClients.filter((account) => account.recurring_active);
   const expectedMrr = recurringClients.reduce((sum, account) => sum + Number(account.expected_monthly_value ?? 0), 0);
-  const qualifiedLeads = (inquiries ?? []).filter((lead) => lead.status === "qualified").length;
+  const visibleLeads = (inquiries ?? []).filter((lead) => !lead.archived_at);\n  const qualifiedLeads = visibleLeads.filter((lead) => lead.status === "qualified").length;
 
   return <main className="mx-auto max-w-[1500px] px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
     <AdminPageHeader
