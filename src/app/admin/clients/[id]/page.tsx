@@ -24,7 +24,7 @@ export default async function ClientDetailPage({ params, searchParams }: { param
   const message = await searchParams;
   const { supabase } = await requireStaff();
   const { data: account } = await supabase.from("client_accounts")
-    .select("id, account_type, display_name, legal_name, email, phone, billing_email, payment_terms_days, status, created_at, updated_at")
+    .select("id, account_type, segment, display_name, legal_name, email, phone, billing_email, payment_terms_days, status, recurring_active, expected_monthly_value, service_level, recurring_start_date, billing_cadence, next_service_at, relationship_review_date, relationship_owner, created_at, updated_at")
     .eq("id", id)
     .maybeSingle();
   if (!account) notFound();
@@ -53,6 +53,23 @@ export default async function ClientDetailPage({ params, searchParams }: { param
     <Link href="/admin/clients?view=clients" className="mb-5 inline-flex min-h-10 items-center gap-2 text-xs font-semibold text-black/45 hover:text-black"><ChevronLeft aria-hidden="true" className="size-4" />All clients</Link>
     <AdminPageHeader eyebrow={`${account.account_type} client`} title={account.display_name} description={`Relationship since ${date.format(new Date(account.created_at))}`} actions={<div className="flex items-center gap-3"><Link href={`/admin/clients/${account.id}/invoices/new`} className="inline-flex min-h-10 items-center bg-[#171a19] px-4 text-xs font-semibold text-white">New Invoice</Link><StatusBadge value={account.status} /></div>} />
     <div className="mt-5"><Message error={message.error} notice={message.notice} /></div>
+
+    {account.segment === "property" ? <section className="mb-5 border border-black/10 bg-[#171b19] p-5 text-white sm:p-6" aria-label="Recurring service relationship">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div><p className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[#d0b274]">Stewardship relationship</p><h2 className="mt-2 font-serif text-3xl">{account.recurring_active ? "Recurring service active" : "On-demand relationship"}</h2></div>
+        <StatusBadge value={account.recurring_active ? "active" : "not recurring"} />
+      </div>
+      <div className="mt-5 grid gap-px bg-white/10 sm:grid-cols-2 xl:grid-cols-5">
+        {[
+          { label: "Service level", value: account.service_level || "Not set" },
+          { label: "Expected MRR", value: money.format(Number(account.expected_monthly_value ?? 0)) },
+          { label: "Next service", value: account.next_service_at ? date.format(new Date(account.next_service_at)) : "Not scheduled" },
+          { label: "Relationship review", value: account.relationship_review_date ? date.format(new Date(account.relationship_review_date + "T12:00:00Z")) : "Not scheduled" },
+          { label: "Billing cadence", value: account.billing_cadence || "Not set" },
+        ].map((item) => <div key={item.label} className="bg-[#171b19] px-4 py-4"><p className="text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-white/40">{item.label}</p><p className="mt-2 text-sm font-semibold text-white/85">{item.value}</p></div>)}
+      </div>
+      <p className="mt-4 text-xs text-white/40">{account.recurring_start_date ? `Recurring since ${date.format(new Date(account.recurring_start_date + "T12:00:00Z"))}` : "Recurring start date not set"} · Relationship owner {account.relationship_owner ? "assigned" : "not assigned"}</p>
+    </section> : null}
 
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Client account metrics">
       {[{ label: "Current balance", value: money.format(currentBalance) }, { label: "Members", value: members.length }, { label: "Properties", value: properties.length }, { label: "Locations", value: locations.length }, { label: "Work orders", value: workOrders.length }].map((metric) => <div key={metric.label} className="border border-black/10 bg-white p-5"><p className="text-xs font-semibold text-black/35">{metric.label}</p><p className="mt-3 font-serif text-3xl">{metric.value}</p></div>)}
