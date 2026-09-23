@@ -4,18 +4,18 @@
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Core positioning, services, Property Health, service area, assessment CTA |
+| `/` | Core positioning, services, service area, and assessment CTA |
 | `/property-services` | Preventive maintenance and field-service stewardship |
 | `/estate-management` | Whole-estate coordination and oversight |
 | `/home-watch` | Documented vacant/second-home inspections |
 | `/new-home-stewardship` | Equipment, warranty, and first-year onboarding |
 | `/moto` | Motorcycle acquisition and collection stewardship |
-| `/memberships` | Membership levels, pricing, field rates, labor disclosure |
+| `/memberships` | Membership levels, pricing, field rates, and labor disclosure |
 | `/about` | APRISM philosophy and operating principles |
-| `/service-area` | Park City, Deer Valley, Promontory, and Summit County coverage |
-| `/contact` | Premium property-assessment inquiry form |
-| `/property-assessment/intake` | Scheduled-client electronic property assessment intake and public fillable PDF |
-| `/privacy` | Website and portal privacy notice |
+| `/service-area` | Park City, Summit County, and Wasatch Back coverage |
+| `/contact` | Property-assessment inquiry form |
+| `/property-assessment/intake` | Electronic assessment intake and public fillable PDF |
+| `/privacy` | Privacy notice |
 | `/terms` | Website, membership, and portal terms |
 
 ## Client portal
@@ -23,44 +23,65 @@
 | Route | Purpose |
 | --- | --- |
 | `/portal/login` | Supabase Auth sign-in |
-| `/portal` | Property health dashboard and current operating picture |
+| `/portal` | Client dashboard |
 | `/portal/properties` | Client property portfolio |
-| `/portal/properties/[id]` | Overview, systems, equipment, history, documents, vendors, photos, calendar |
-| `/portal/inspections` | Documented inspection history and reports |
+| `/portal/properties/[id]` | Property detail and operating record |
+| `/portal/inspections` | Inspection history and reports |
 | `/portal/maintenance` | Planned and recurring maintenance |
-| `/portal/issues` | Condition changes through resolution |
-| `/portal/documents` | Property document library |
+| `/portal/issues` | Property-condition issues |
+| `/portal/documents` | Client document library |
 | `/portal/requests` | Service-request creation and history |
-| `/portal/profile` | Contact preferences and authorized memberships |
-| `/portal/business` | Business account snapshot, locations, work orders, outstanding invoices, and completed work |
-| `/portal/business/work-orders` | Account-scoped business work-order list |
-| `/portal/business/work-orders/[id]` | Work-order scope, service location, schedule, completion, and linked invoice |
-| `/portal/invoices` | Unified private/business invoice list and balances |
-| `/portal/invoices/[invoiceNumber]` | Polished invoice, line items, payments, terms, and Stripe-hosted payment CTAs |
-| `/portal/invoices/[invoiceNumber]/pdf` | RLS-authorized short-lived signed invoice PDF download |
+| `/portal/profile` | Client profile and access information |
+| `/portal/business` | Business-account dashboard |
+| `/portal/business/work-orders` | Business work orders |
+| `/portal/business/work-orders/[id]` | Work-order detail |
+| `/portal/invoices` | Invoice list and balances |
+| `/portal/invoices/[invoiceNumber]` | Invoice detail and payment CTA |
+| `/portal/invoices/[invoiceNumber]/pdf` | Authorized invoice PDF download |
 
 ## APRISM administration
 
 | Route | Purpose |
 | --- | --- |
-| `/admin` | Protected owner/staff console for inquiries, properties, requests, and issues |
-| `/admin/assessments` | Protected field checklist, report builder, saved assessment records, and staff-only PDF references |
-| `/admin/assessments/documents/[document]` | Authenticated staff download boundary for internal assessment PDFs |
-| `/admin/billing` | Staff-only clients, business accounts, work orders, invoices, balances, overdue status, and payment activity |
+| `/admin` | Protected operations dashboard and Proof Mode |
+| `/admin/clients` | Leads and client accounts |
+| `/admin/clients/new` | Create a client account |
+| `/admin/clients/[id]` | Client-account detail |
+| `/admin/clients/leads/[id]` | Lead detail and status management |
+| `/admin/assessments` | Assessment pipeline |
+| `/admin/assessments/new` | Start a new assessment |
+| `/admin/assessments/[id]` | Assessment field/report workflow |
+| `/admin/assessments/documents/[document]` | Staff-only assessment document boundary |
+| `/admin/properties` | Property portfolio |
+| `/admin/properties/new` | Add a property |
+| `/admin/properties/[id]` | Property operating record |
+| `/admin/requests` | Service-request queue |
+| `/admin/requests/[id]` | Service-request detail |
+| `/admin/issues` | Property issue queue |
+| `/admin/issues/[id]` | Issue detail |
+| `/admin/billing` | Estimates, invoices, A/R, work orders, and payments |
+| `/admin/billing/estimates/new` | Create estimate |
+| `/admin/billing/estimates/[estimateNumber]` | Estimate detail |
+| `/admin/billing/invoices/[invoiceNumber]` | Invoice detail |
+| `/admin/working-capital` | Operating cash and reserve tracking |
+| `/admin/vendors` | Vendor records |
+| `/admin/documents` | Staff document access |
+| `/admin/settings` | Staff/admin settings |
 
 ## Payment API
 
 | Route | Purpose |
 | --- | --- |
-| `/api/stripe/webhook` | Raw-body Stripe signature verification and idempotent payment/invoice processing |
+| `/api/stripe/webhook` | Stripe signature verification and idempotent payment/invoice processing |
 
 ## Framework routes
 
 | Route | Purpose |
 | --- | --- |
-| `/sitemap.xml` | Public marketing route discovery |
-| `/robots.txt` | Search guidance; disallows portal crawling |
-| `/manifest.webmanifest` | Application identity and theme |
+| `/sitemap.xml` | Public route discovery |
+| `/robots.txt` | Search guidance |
+| `/manifest.webmanifest` | Public application identity |
+| `/admin-manifest.webmanifest` | Admin application identity |
 | `/opengraph-image` | Branded social preview image |
 
-`src/proxy.ts` requires a valid session for every portal and admin route except `/portal/login`. The `/admin` layout then requires an active `staff_users` assignment; ordinary clients are returned to the client portal.
+`src/proxy.ts` requires a valid session for protected portal and admin routes. The admin layout separately requires an active staff assignment; ordinary clients are routed back to the client portal.
