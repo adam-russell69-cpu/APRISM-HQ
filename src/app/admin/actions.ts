@@ -52,6 +52,49 @@ export async function updateInquiryStatus(formData: FormData) {
     return;
   }
 
+  if (status === "converted") {
+    const { data: inquiry } = await supabase
+      .from("inquiries")
+      .select("id, name, email, phone, converted_client_account_id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (inquiry && !inquiry.converted_client_account_id) {
+      const { data: client, error: clientError } = await supabase.from("client_accounts").insert({
+        account_type: "private",
+        segment: "property",
+        display_name: inquiry.name,
+        email: inquiry.email || null,
+        phone: inquiry.phone || null,
+        billing_email: inquiry.email || null,
+        payment_terms_days: 15,
+        status: "active",
+      }).select("id").single();
+
+      if (clientError || !client) {
+        console.error("APRISM lead conversion client creation failed", { code: clientError?.code ?? "missing_client_id" });
+      } else {
+        const { data: assessment } = await supabase.from("property_assessments")
+          .select("property_id")
+          .eq("inquiry_id", id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (assessment?.property_id) {
+          await supabase.from("properties").update({ client_account_id: client.id }).eq("id", assessment.property_id);
+        }
+
+        await supabase.from("inquiries").update({
+          converted_client_account_id: client.id,
+          converted_property_id: assessment?.property_id ?? null,
+          next_action: null,
+          next_action_at: null,
+        }).eq("id", id);
+      }
+    }
+  }
+
   if (status === "scheduled") {
     const { data: inquiry } = await supabase
       .from("inquiries")

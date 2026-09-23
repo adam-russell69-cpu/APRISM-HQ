@@ -29,13 +29,13 @@ export default async function AdminPage() {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
 
   const [inquiryResult, propertyResult, requestResult, issueResult, assessmentResult, clientResult, invoiceResult, paymentResult] = await Promise.all([
-    supabase.from("inquiries").select("id, name, property_location, status, created_at, updated_at").order("created_at", { ascending: false }).limit(30),
+    supabase.from("inquiries").select("id, name, property_location, status, archived_at, created_at, updated_at").is("archived_at", null).order("created_at", { ascending: false }).limit(30),
     supabase.from("properties").select("id, name, city, state, health_status, updated_at").order("updated_at", { ascending: false }).limit(30),
     supabase.from("service_requests").select("id, property_id, title, category, status, created_at, updated_at").order("updated_at", { ascending: false }).limit(30),
     supabase.from("issues").select("id, property_id, title, severity, status, created_at, updated_at").order("updated_at", { ascending: false }).limit(30),
     supabase.from("property_assessments").select("id, property_id, status, intake_data, assessment_date, created_at, updated_at").order("updated_at", { ascending: false }).limit(30),
-    supabase.from("client_accounts").select("id, status, recurring_active, expected_monthly_value"),
-    supabase.from("invoices").select("id, status, issue_date, total, amount_due").gte("issue_date", monthStart),
+    supabase.from("client_accounts").select("id, status, segment, recurring_active, expected_monthly_value"),
+    supabase.from("invoices").select("id, status, issue_date, total, amount_due"),
     supabase.from("payments").select("id, status, amount, paid_at").eq("status", "succeeded").gte("paid_at", `${monthStart}T00:00:00`),
   ]);
 
@@ -48,7 +48,7 @@ export default async function AdminPage() {
   const invoices = invoiceResult.data ?? [];
   const payments = paymentResult.data ?? [];
 
-  const activeClients = clients.filter((client) => client.status === "active");
+  const activeClients = clients.filter((client) => client.status === "active" && client.segment === "property");
   const recurringClients = activeClients.filter((client) => client.recurring_active);
   const expectedMrr = recurringClients.reduce((sum, client) => sum + Number(client.expected_monthly_value ?? 0), 0);
   const monthlyInvoiced = invoices
@@ -80,7 +80,7 @@ export default async function AdminPage() {
     ...issues.map((item) => ({ key: `i-${item.id}`, href: `/admin/issues/${item.id}`, title: `Issue updated · ${item.title}`, date: item.updated_at })),
     ...requests.map((item) => ({ key: `r-${item.id}`, href: `/admin/requests/${item.id}`, title: `Request ${labelStatus(item.status)} · ${item.title}`, date: item.updated_at })),
     ...properties.map((item) => ({ key: `p-${item.id}`, href: `/admin/properties/${item.id}`, title: `Property updated · ${item.name}`, date: item.updated_at })),
-    ...inquiries.map((item) => ({ key: `l-${item.id}`, href: "/admin/clients?view=leads", title: `Lead ${labelStatus(item.status)} · ${item.name}`, date: item.updated_at })),
+    ...inquiries.map((item) => ({ key: `l-${item.id}`, href: `/admin/clients/leads/${item.id}`, title: `Lead ${labelStatus(item.status)} · ${item.name}`, date: item.updated_at })),
   ].toSorted((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 8);
 
   const clientProofPercent = percent(recurringClients.length, 5);
@@ -95,7 +95,7 @@ export default async function AdminPage() {
         <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[#d0b274]">APRISM Proof Mode</p><h2 className="mt-2 font-serif text-3xl">Build the operating proof</h2></div><Link href="/admin/clients?view=clients" className="text-xs font-semibold text-white/55 hover:text-white">Manage clients →</Link></div>
       </div>
       <div className="grid gap-px bg-white/10 lg:grid-cols-3">
-        {[{ label: "Recurring clients", value: `${recurringClients.length} / 5`, progress: clientProofPercent, note: "Proof gate: 3–5" }, { label: "Monthly invoiced", value: `${money.format(monthlyInvoiced)} / $10K`, progress: revenueProofPercent, note: "Current calendar month" }, { label: "Expected recurring revenue", value: `${money.format(expectedMrr)} / $5K`, progress: mrrProofPercent, note: "From marked recurring clients" }].map((metric) => <div key={metric.label} className="bg-[#171b19] px-5 py-5 sm:px-6"><div className="flex items-center justify-between gap-3"><p className="text-xs font-semibold text-white/55">{metric.label}</p><span className="text-xs text-[#d0b274]">{metric.progress}%</span></div><p className="mt-3 font-serif text-3xl">{metric.value}</p><div className="mt-4 h-1.5 overflow-hidden bg-white/10"><div className="h-full bg-[#c6a66a]" style={{ width: `${metric.progress}%` }} /></div><p className="mt-2 text-[0.7rem] text-white/35">{metric.note}</p></div>)}
+        {[{ label: "Recurring clients", value: `${recurringClients.length} / 5`, progress: clientProofPercent, note: "Minimum proof: 3 · target: 5" }, { label: "Proof-gate invoiced", value: `${money.format(monthlyInvoiced)} / $10K`, progress: revenueProofPercent, note: "Cumulative non-draft operating invoices" }, { label: "Expected recurring revenue", value: `${money.format(expectedMrr)} / $5K`, progress: mrrProofPercent, note: "From marked recurring clients" }].map((metric) => <div key={metric.label} className="bg-[#171b19] px-5 py-5 sm:px-6"><div className="flex items-center justify-between gap-3"><p className="text-xs font-semibold text-white/55">{metric.label}</p><span className="text-xs text-[#d0b274]">{metric.progress}%</span></div><p className="mt-3 font-serif text-3xl">{metric.value}</p><div className="mt-4 h-1.5 overflow-hidden bg-white/10"><div className="h-full bg-[#c6a66a]" style={{ width: `${metric.progress}%` }} /></div><p className="mt-2 text-[0.7rem] text-white/35">{metric.note}</p></div>)}
       </div>
     </section>
 
