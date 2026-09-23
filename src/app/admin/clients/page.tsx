@@ -38,7 +38,8 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const activeClients = (accounts ?? []).filter((account) => account.status === "active" && account.segment === "property");
   const recurringClients = activeClients.filter((account) => account.recurring_active);
   const expectedMrr = recurringClients.reduce((sum, account) => sum + Number(account.expected_monthly_value ?? 0), 0);
-  const visibleLeads = (inquiries ?? []).filter((lead) => !lead.archived_at);\n  const qualifiedLeads = visibleLeads.filter((lead) => lead.status === "qualified").length;
+  const visibleLeads = (inquiries ?? []).filter((lead) => !lead.archived_at);
+  const qualifiedLeads = visibleLeads.filter((lead) => lead.status === "qualified").length;
 
   return <main className="mx-auto max-w-[1500px] px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
     <AdminPageHeader
