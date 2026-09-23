@@ -62,14 +62,14 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
     </section>
 
     <nav className="mt-6 flex gap-1 border-b border-black/10" aria-label="Client and lead views">
-      <Link href="/admin/clients?view=leads" className={`border-b-2 px-4 py-3 text-sm font-semibold ${view === "leads" ? "border-[#9a793e] text-black" : "border-transparent text-black/40"}`}>Leads <span className="ml-2 text-xs font-normal text-black/30">{inquiries?.length ?? 0}</span></Link>
+      <Link href="/admin/clients?view=leads" className={`border-b-2 px-4 py-3 text-sm font-semibold ${view === "leads" ? "border-[#9a793e] text-black" : "border-transparent text-black/40"}`}>Leads <span className="ml-2 text-xs font-normal text-black/30">{visibleLeads.length}</span></Link>
       <Link href="/admin/clients?view=clients" className={`border-b-2 px-4 py-3 text-sm font-semibold ${view === "clients" ? "border-[#9a793e] text-black" : "border-transparent text-black/40"}`}>Clients <span className="ml-2 text-xs font-normal text-black/30">{accounts?.length ?? 0}</span></Link>
     </nav>
 
     <section className="mt-5">
       {view === "leads" ? (
-        inquiries?.length ? <AdminTable columns={["Name", "Property / location", "Interest", "Status", "Received", "Next action"]}>
-          {inquiries.map((lead) => <AdminTableRow key={lead.id} columns={6}>
+        visibleLeads.length ? <AdminTable columns={["Name", "Property / location", "Interest", "Status", "Received", "Next action"]}>
+          {visibleLeads.map((lead) => <AdminTableRow key={lead.id} columns={6}>
             <div><MobileLabel>Name</MobileLabel><Link href={`/admin/clients/leads/${lead.id}`} className="font-semibold text-black/72 hover:underline">{lead.name}</Link></div>
             <div><MobileLabel>Property / location</MobileLabel><p className="text-black/58">{lead.property_location}</p><p className="mt-1 text-xs text-black/34">{lead.property_type}</p></div>
             <div><MobileLabel>Interest</MobileLabel><p className="text-xs leading-5 text-black/55">{lead.services.join(" · ")}</p></div>
