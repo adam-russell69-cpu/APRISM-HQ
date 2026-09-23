@@ -86,10 +86,10 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
           </AdminTableRow>)}
         </AdminTable> : <div className="border border-black/10 bg-white"><EmptyState icon={UserRoundSearch} title="No leads yet" description="New property assessment inquiries will appear here." /></div>
       ) : (
-        accounts?.length ? <AdminTable columns={["Client account", "Type", "Properties", "Recurring", "Expected MRR", "Status", "Relationship since"]}>
+        accounts?.length ? <AdminTable columns={["Client account", "Segment", "Properties", "Recurring", "Expected MRR", "Next service", "Status"]}>
           {accounts.map((account) => <AdminTableRow key={account.id} columns={7}>
             <div><MobileLabel>Client account</MobileLabel><Link href={`/admin/clients/${account.id}`} className="font-semibold text-black/70 hover:underline">{account.display_name}</Link><p className="mt-1 text-xs text-black/34">{account.billing_email ?? "Billing contact not set"}</p></div>
-            <div><MobileLabel>Type</MobileLabel><StatusBadge value={account.account_type} /></div>
+            <div><MobileLabel>Segment</MobileLabel><StatusBadge value={account.segment ?? account.account_type} /></div>
             <div><MobileLabel>Properties</MobileLabel><p>{propertyCountByAccount.get(account.id) ?? 0}</p></div>
             <div><MobileLabel>Recurring</MobileLabel><StatusBadge value={account.recurring_active ? "active" : "not recurring"} /></div>
             <div><MobileLabel>Expected MRR</MobileLabel><p className="font-semibold">{money.format(Number(account.expected_monthly_value ?? 0))}</p></div>
