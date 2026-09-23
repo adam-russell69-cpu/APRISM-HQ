@@ -8,15 +8,15 @@ import type { StaffAccount } from "@/lib/admin-account";
 
 const navigation = [
   { href: "/admin", label: "Dashboard", icon: Gauge, exact: true },
-  { href: "/admin/working-capital", label: "Working Capital", icon: Landmark },
+  { href: "/admin/clients", label: "Clients & Leads", icon: Users },
   { href: "/admin/assessments", label: "Assessments", icon: ClipboardCheck },
   { href: "/admin/properties", label: "Properties", icon: Building2 },
-  { href: "/admin/clients", label: "Clients & Leads", icon: Users },
-  { href: "/admin/billing", label: "Billing", icon: CreditCard },
   { href: "/admin/requests", label: "Requests", icon: MessageSquareText },
   { href: "/admin/issues", label: "Issues", icon: TriangleAlert },
-  { href: "/admin/documents", label: "Documents", icon: FileText },
+  { href: "/admin/billing", label: "Billing", icon: CreditCard },
+  { href: "/admin/working-capital", label: "Working Capital", icon: Landmark },
   { href: "/admin/vendors", label: "Vendors", icon: Wrench },
+  { href: "/admin/documents", label: "Documents", icon: FileText },
 ] as const;
 
 export function AdminSidebar({ account, onNavigate }: { account: StaffAccount; onNavigate?: () => void }) {
