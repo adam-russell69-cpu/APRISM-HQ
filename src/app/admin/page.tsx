@@ -36,7 +36,9 @@ export default async function AdminPage() {
     supabase.from("property_assessments").select("id, property_id, status, intake_data, assessment_date, created_at, updated_at").order("updated_at", { ascending: false }).limit(30),
     supabase.from("client_accounts").select("id, status, segment, recurring_active, expected_monthly_value"),
     supabase.from("invoices").select("id, status, issue_date, total, amount_due"),
-    supabase.from("payments").select("id, status, amount, paid_at").eq("status", "succeeded").gte("paid_at", `${monthStart}T00:00:00`),
+    supabase.from("payments").select("id, status, amount, paid_at").eq("status", "succeeded"),
+    supabase.from("work_orders").select("id, client_account_id, direct_job_cost"),
+    supabase.from("service_visits").select("id, work_order_id, duration_minutes"),
   ]);
 
   const inquiries = inquiryResult.data ?? [];
@@ -46,7 +48,9 @@ export default async function AdminPage() {
   const assessments = assessmentResult.data ?? [];
   const clients = clientResult.data ?? [];
   const invoices = invoiceResult.data ?? [];
-  const payments = paymentResult.data ?? [];\n  const workOrders = workOrderResult.data ?? [];\n  const serviceVisits = serviceVisitResult.data ?? [];
+  const payments = paymentResult.data ?? [];
+  const workOrders = workOrderResult.data ?? [];
+  const serviceVisits = serviceVisitResult.data ?? [];
 
   const activeClients = clients.filter((client) => client.status === "active" && client.segment === "property");
   const recurringClients = activeClients.filter((client) => client.recurring_active);
