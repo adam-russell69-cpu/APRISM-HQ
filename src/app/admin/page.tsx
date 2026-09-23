@@ -28,7 +28,7 @@ export default async function AdminPage() {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
 
-  const [inquiryResult, propertyResult, requestResult, issueResult, assessmentResult, clientResult, invoiceResult, paymentResult] = await Promise.all([
+  const [inquiryResult, propertyResult, requestResult, issueResult, assessmentResult, clientResult, invoiceResult, paymentResult, workOrderResult, serviceVisitResult] = await Promise.all([
     supabase.from("inquiries").select("id, name, property_location, status, archived_at, created_at, updated_at").is("archived_at", null).order("created_at", { ascending: false }).limit(30),
     supabase.from("properties").select("id, name, city, state, health_status, updated_at").order("updated_at", { ascending: false }).limit(30),
     supabase.from("service_requests").select("id, property_id, title, category, status, created_at, updated_at").order("updated_at", { ascending: false }).limit(30),
@@ -36,7 +36,9 @@ export default async function AdminPage() {
     supabase.from("property_assessments").select("id, property_id, status, intake_data, assessment_date, created_at, updated_at").order("updated_at", { ascending: false }).limit(30),
     supabase.from("client_accounts").select("id, status, segment, recurring_active, expected_monthly_value"),
     supabase.from("invoices").select("id, status, issue_date, total, amount_due"),
-    supabase.from("payments").select("id, status, amount, paid_at").eq("status", "succeeded").gte("paid_at", `${monthStart}T00:00:00`),
+    supabase.from("payments").select("id, status, amount, paid_at").eq("status", "succeeded"),
+    supabase.from("work_orders").select("id, client_account_id, direct_job_cost"),
+    supabase.from("service_visits").select("id, work_order_id, duration_minutes"),
   ]);
 
   const inquiries = inquiryResult.data ?? [];
@@ -47,6 +49,8 @@ export default async function AdminPage() {
   const clients = clientResult.data ?? [];
   const invoices = invoiceResult.data ?? [];
   const payments = paymentResult.data ?? [];
+  const workOrders = workOrderResult.data ?? [];
+  const serviceVisits = serviceVisitResult.data ?? [];
 
   const activeClients = clients.filter((client) => client.status === "active" && client.segment === "property");
   const recurringClients = activeClients.filter((client) => client.recurring_active);
@@ -55,6 +59,15 @@ export default async function AdminPage() {
     .filter((invoice) => !["draft", "void", "cancelled"].includes(invoice.status))
     .reduce((sum, invoice) => sum + Number(invoice.total ?? 0), 0);
   const cashCollected = payments.reduce((sum, payment) => sum + Number(payment.amount ?? 0), 0);
+  const cashCollectedThisMonth = payments.filter((payment) => payment.paid_at && payment.paid_at >= `${monthStart}T00:00:00`).reduce((sum, payment) => sum + Number(payment.amount ?? 0), 0);
+  const propertyClientIds = new Set(activeClients.map((client) => client.id));
+  const propertyWorkOrders = workOrders.filter((workOrder) => workOrder.client_account_id && propertyClientIds.has(workOrder.client_account_id));
+  const propertyWorkOrderIds = new Set(propertyWorkOrders.map((workOrder) => workOrder.id));
+  const directJobCosts = propertyWorkOrders.reduce((sum, workOrder) => sum + Number(workOrder.direct_job_cost ?? 0), 0);
+  const fieldMinutes = serviceVisits.filter((visit) => propertyWorkOrderIds.has(visit.work_order_id)).reduce((sum, visit) => sum + Number(visit.duration_minutes ?? 0), 0);
+  const fieldHours = fieldMinutes / 60;
+  const grossMarginDollars = monthlyInvoiced - directJobCosts;
+  const grossMarginPercent = monthlyInvoiced > 0 ? Math.round((grossMarginDollars / monthlyInvoiced) * 100) : 0;
   const openAr = invoices
     .filter((invoice) => !["draft", "void", "cancelled", "paid"].includes(invoice.status))
     .reduce((sum, invoice) => sum + Number(invoice.amount_due ?? 0), 0);
@@ -99,13 +112,22 @@ export default async function AdminPage() {
       </div>
     </section>
 
+    <section aria-label="Proof economics" className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {[
+        { label: "Field hours captured", value: fieldHours.toFixed(1), note: "From completed service-visit time records" },
+        { label: "Direct job costs", value: money.format(directJobCosts), note: "Costs recorded against property work orders" },
+        { label: "Gross margin", value: `${grossMarginPercent}%`, note: `${money.format(grossMarginDollars)} before overhead` },
+        { label: "Cash collected", value: money.format(cashCollected), note: "Cumulative successful payments" },
+      ].map((metric) => <article key={metric.label} className="border border-black/10 bg-[#f8f6f0] p-4"><p className="text-xs font-semibold text-black/40">{metric.label}</p><p className="mt-3 font-serif text-3xl">{metric.value}</p><p className="mt-2 text-[0.7rem] text-black/35">{metric.note}</p></article>)}
+    </section>
+
     <section aria-label="Business metrics" className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
       {[
         { href: "/admin/clients?view=clients", label: "Active clients", value: activeClients.length, icon: Users },
         { href: "/admin/clients?view=leads", label: "Qualified leads", value: qualifiedLeads, icon: Target },
         { href: "/admin/assessments", label: "Completed assessments", value: completedAssessments, icon: ClipboardCheck },
         { href: "/admin/billing", label: "Open A/R", value: money.format(openAr), icon: ReceiptText },
-        { href: "/admin/billing", label: "Cash collected", value: money.format(cashCollected), icon: DollarSign },
+        { href: "/admin/billing", label: "Cash this month", value: money.format(cashCollectedThisMonth), icon: DollarSign },
         { href: "/admin/clients?view=clients", label: "Expected MRR", value: money.format(expectedMrr), icon: DollarSign },
       ].map(({ href, label, value, icon: Icon }) => <Link key={label} href={href} className="group border border-black/10 bg-white p-4 transition hover:border-[#a8864e]/55"><div className="flex items-start justify-between"><Icon aria-hidden="true" className="size-4 text-[#8c6d36]" /><ArrowRight aria-hidden="true" className="size-3.5 text-black/20 transition group-hover:translate-x-0.5 group-hover:text-black/50" /></div><p className="mt-5 font-serif text-3xl">{value}</p><p className="mt-2 text-xs text-black/48">{label}</p></Link>)}
     </section>
