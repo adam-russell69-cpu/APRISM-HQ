@@ -9,6 +9,7 @@ import type { StaffAccount } from "@/lib/admin-account";
 const navigation = [
   { href: "/admin", label: "Dashboard", icon: Gauge, exact: true },
   { href: "/admin/clients", label: "Clients & Leads", icon: Users },
+  { href: "/admin/partners", label: "Referral Partners", icon: Handshake },
   { href: "/admin/assessments", label: "Assessments", icon: ClipboardCheck },
   { href: "/admin/properties", label: "Properties", icon: Building2 },
   { href: "/admin/requests", label: "Requests", icon: MessageSquareText },
