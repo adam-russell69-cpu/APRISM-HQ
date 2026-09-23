@@ -123,7 +123,7 @@ export default async function AdminPage() {
         { href: "/admin/clients?view=leads", label: "Qualified leads", value: qualifiedLeads, icon: Target },
         { href: "/admin/assessments", label: "Completed assessments", value: completedAssessments, icon: ClipboardCheck },
         { href: "/admin/billing", label: "Open A/R", value: money.format(openAr), icon: ReceiptText },
-        { href: "/admin/billing", label: "Cash collected", value: money.format(cashCollected), icon: DollarSign },
+        { href: "/admin/billing", label: "Cash this month", value: money.format(cashCollectedThisMonth), icon: DollarSign },
         { href: "/admin/clients?view=clients", label: "Expected MRR", value: money.format(expectedMrr), icon: DollarSign },
       ].map(({ href, label, value, icon: Icon }) => <Link key={label} href={href} className="group border border-black/10 bg-white p-4 transition hover:border-[#a8864e]/55"><div className="flex items-start justify-between"><Icon aria-hidden="true" className="size-4 text-[#8c6d36]" /><ArrowRight aria-hidden="true" className="size-3.5 text-black/20 transition group-hover:translate-x-0.5 group-hover:text-black/50" /></div><p className="mt-5 font-serif text-3xl">{value}</p><p className="mt-2 text-xs text-black/48">{label}</p></Link>)}
     </section>
