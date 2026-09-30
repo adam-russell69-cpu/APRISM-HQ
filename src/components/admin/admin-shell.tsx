@@ -13,6 +13,7 @@ const sections = [
   ["/admin/clients", "Clients & Leads"],
   ["/admin/billing", "Billing"],
   ["/admin/requests", "Requests"],
+  ["/admin/work-orders", "Work Orders"],
   ["/admin/issues", "Issues"],
   ["/admin/documents", "Documents"],
   ["/admin/vendors", "Vendors"],
@@ -26,6 +27,7 @@ function sectionFor(pathname: string) {
 function contextualAction(pathname: string) {
   if (pathname.startsWith("/admin/assessments")) return { href: "/admin/assessments/new", label: "New Assessment" };
   if (pathname.startsWith("/admin/properties")) return { href: "/admin/properties/new", label: "Add Property" };
+  if (pathname.startsWith("/admin/work-orders")) return { href: "/admin/requests", label: "Open Requests" };
   return { href: "/admin/assessments/new", label: "New Assessment" };
 }
 

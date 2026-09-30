@@ -13,6 +13,7 @@ const navigation = [
   { href: "/admin/assessments", label: "Assessments", icon: ClipboardCheck },
   { href: "/admin/properties", label: "Properties", icon: Building2 },
   { href: "/admin/requests", label: "Requests", icon: MessageSquareText },
+  { href: "/admin/work-orders", label: "Work Orders", icon: Wrench },
   { href: "/admin/issues", label: "Issues", icon: TriangleAlert },
   { href: "/admin/billing", label: "Billing", icon: CreditCard },
   { href: "/admin/working-capital", label: "Working Capital", icon: Landmark },

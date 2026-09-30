@@ -1,5 +1,6 @@
 "use server";
 
+import { getPortalScope } from "@/lib/portal-scope";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
@@ -21,10 +22,25 @@ export async function submitServiceRequest(_previousState: RequestState, formDat
   const userId = claimsData?.claims?.sub;
   if (!userId) return { status: "error", message: "Your session has expired. Please sign in again." };
 
-  const { data: membership, error: membershipError } = await supabase.from("property_members").select("property_id").eq("user_id", userId).eq("property_id", propertyId).maybeSingle();
-  if (membershipError || !membership) return { status: "error", message: "No authorized property membership was found for this account." };
+  let scope;
+  try {
+    scope = await getPortalScope(supabase, userId);
+  } catch {
+    return { status: "error", message: "APRISM could not verify your property access. Please sign in again or contact APRISM." };
+  }
 
-  const { error } = await supabase.from("service_requests").insert({ property_id: membership.property_id, requested_by: userId, title, category, description, preferred_timing: preferredTiming || null });
+  if (!scope.propertyIds.includes(propertyId)) {
+    return { status: "error", message: "This property is not available to your portal account." };
+  }
+
+  const { error } = await supabase.from("service_requests").insert({
+    property_id: propertyId,
+    requested_by: userId,
+    title,
+    category,
+    description,
+    preferred_timing: preferredTiming || null,
+  });
   if (error) return { status: "error", message: "APRISM could not save this request. Please contact your steward directly." };
   revalidatePath("/portal");
   revalidatePath("/portal/requests");

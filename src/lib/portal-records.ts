@@ -7,6 +7,7 @@ import {
   previewPortalSnapshot,
   type PortalSnapshot,
 } from "@/lib/portal-data";
+import { getPortalScope } from "@/lib/portal-scope";
 import { createClient } from "@/lib/supabase/server";
 
 const emptyLiveSnapshot: PortalSnapshot = {
@@ -29,8 +30,22 @@ export const getPortalSnapshot = cache(async (): Promise<PortalSnapshot> => {
   if (!supabase) return previewPortalSnapshot;
 
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
-  if (claimsError || !claimsData?.claims?.sub) {
+  const userId = claimsData?.claims?.sub;
+  if (claimsError || !userId) {
     return { ...emptyLiveSnapshot, errorMessage: "Your secure portal session could not be verified. Please sign in again." };
+  }
+
+  let portalPropertyIds: string[] = [];
+  try {
+    const scope = await getPortalScope(supabase, userId);
+    portalPropertyIds = scope.propertyIds;
+  } catch (error) {
+    console.error("[portal-records] Portal scope lookup failed", error);
+    return { ...emptyLiveSnapshot, errorMessage: "APRISM could not verify your property access right now. Please try again shortly." };
+  }
+
+  if (!portalPropertyIds.length) {
+    return { ...emptyLiveSnapshot, errorMessage: "No property is currently linked to this portal account." };
   }
 
   const [
@@ -78,10 +93,24 @@ export const getPortalSnapshot = cache(async (): Promise<PortalSnapshot> => {
     return { ...emptyLiveSnapshot, errorMessage: "APRISM could not load the property record right now. Please try again shortly." };
   }
 
+  const propertySet = new Set(portalPropertyIds);
+  const properties = (propertiesResult.data ?? []).filter((row) => propertySet.has(row.id));
+  const systems = (systemsResult.data ?? []).filter((row) => propertySet.has(row.property_id));
+  const inspections = (inspectionsResult.data ?? []).filter((row) => propertySet.has(row.property_id));
+  const inspectionIds = new Set(inspections.map((row) => row.id));
+  const inspectionItems = (inspectionItemsResult.data ?? []).filter((row) => inspectionIds.has(row.inspection_id));
+  const maintenanceTasks = (maintenanceResult.data ?? []).filter((row) => propertySet.has(row.property_id));
+  const issues = (issuesResult.data ?? []).filter((row) => propertySet.has(row.property_id));
+  const documents = (documentsResult.data ?? []).filter((row) => propertySet.has(row.property_id));
+  const propertyVendors = (propertyVendorsResult.data ?? []).filter((row) => propertySet.has(row.property_id));
+  const vendorIds = new Set(propertyVendors.map((row) => row.vendor_id));
+  const vendors = (vendorsResult.data ?? []).filter((row) => vendorIds.has(row.id));
+  const serviceRequests = (serviceRequestsResult.data ?? []).filter((row) => propertySet.has(row.property_id));
+
   return {
     mode: "live",
     errorMessage: null,
-    properties: (propertiesResult.data ?? []).map((row) => ({
+    properties: properties.map((row) => ({
       id: row.id,
       name: row.name,
       location: [row.city, row.state].filter(Boolean).join(", "),
@@ -93,7 +122,7 @@ export const getPortalSnapshot = cache(async (): Promise<PortalSnapshot> => {
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     })),
-    systems: (systemsResult.data ?? []).map((row) => ({
+    systems: systems.map((row) => ({
       id: row.id,
       propertyId: row.property_id,
       name: row.name,
@@ -107,7 +136,7 @@ export const getPortalSnapshot = cache(async (): Promise<PortalSnapshot> => {
       notes: row.notes,
       updatedAt: row.updated_at,
     })),
-    inspections: (inspectionsResult.data ?? []).map((row) => ({
+    inspections: inspections.map((row) => ({
       id: row.id,
       propertyId: row.property_id,
       type: humanizeStatus(row.inspection_type, "Property inspection"),
@@ -118,7 +147,7 @@ export const getPortalSnapshot = cache(async (): Promise<PortalSnapshot> => {
       summary: row.summary,
       updatedAt: row.updated_at,
     })),
-    inspectionItems: (inspectionItemsResult.data ?? []).map((row) => ({
+    inspectionItems: inspectionItems.map((row) => ({
       id: row.id,
       inspectionId: row.inspection_id,
       title: row.title,
@@ -128,7 +157,7 @@ export const getPortalSnapshot = cache(async (): Promise<PortalSnapshot> => {
       recommendation: row.recommendation,
       photoCount: row.photo_paths.length,
     })),
-    maintenanceTasks: (maintenanceResult.data ?? []).map((row) => ({
+    maintenanceTasks: maintenanceTasks.map((row) => ({
       id: row.id,
       propertyId: row.property_id,
       propertySystemId: row.property_system_id,
@@ -142,7 +171,7 @@ export const getPortalSnapshot = cache(async (): Promise<PortalSnapshot> => {
       recurrence: row.recurrence,
       updatedAt: row.updated_at,
     })),
-    issues: (issuesResult.data ?? []).map((row) => ({
+    issues: issues.map((row) => ({
       id: row.id,
       propertyId: row.property_id,
       inspectionId: row.inspection_id,
@@ -155,7 +184,7 @@ export const getPortalSnapshot = cache(async (): Promise<PortalSnapshot> => {
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     })),
-    documents: (documentsResult.data ?? []).map((row) => ({
+    documents: documents.map((row) => ({
       id: row.id,
       propertyId: row.property_id,
       name: row.name,
@@ -164,20 +193,20 @@ export const getPortalSnapshot = cache(async (): Promise<PortalSnapshot> => {
       sizeBytes: row.size_bytes,
       updatedAt: row.updated_at,
     })),
-    vendors: (vendorsResult.data ?? []).map((row) => ({
+    vendors: vendors.map((row) => ({
       id: row.id,
       name: row.name,
       trade: row.trade,
       primaryContact: row.primary_contact,
     })),
-    propertyVendors: (propertyVendorsResult.data ?? []).map((row) => ({
+    propertyVendors: propertyVendors.map((row) => ({
       id: row.id,
       propertyId: row.property_id,
       vendorId: row.vendor_id,
       scope: row.scope,
       isPreferred: row.is_preferred,
     })),
-    serviceRequests: (serviceRequestsResult.data ?? []).map((row) => ({
+    serviceRequests: serviceRequests.map((row) => ({
       id: row.id,
       propertyId: row.property_id,
       category: humanizeStatus(row.category),
