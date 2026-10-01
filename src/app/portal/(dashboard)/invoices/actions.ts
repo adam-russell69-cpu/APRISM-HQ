@@ -144,7 +144,7 @@ export async function createInvoiceCheckout(formData: FormData) {
 
     const { error: invoiceUpdateError } = await admin
       .from("invoices")
-      .update({ stripe_customer_id: customerId, stripe_checkout_session_id: session.id })
+      .update({ stripe_customer_id: customerId, stripe_checkout_session_id: session.id, stripe_payment_url: session.url, stripe_payment_url_verified_at: new Date().toISOString() })
       .eq("id", invoice.id)
       .eq("client_account_id", invoice.client_account_id);
     if (invoiceUpdateError) throw invoiceUpdateError;
